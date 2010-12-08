@@ -6,7 +6,9 @@
 
 <script src="{{ STATIC_URL }}fcdjangoutils/js/expand.js"></script>
 
+
+<div id="feed">
 {% for entry in feed.entries.all %}
-  <hr />
   {% render entry "html" %}
 {% endfor %}
+</div>
