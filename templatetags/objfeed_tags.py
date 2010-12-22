@@ -4,11 +4,11 @@ register = django.template.Library()
 
 @register.inclusion_tag("djangoobjfeed/objfeed.html", takes_context=True)
 def objfeed_for_user(context, user, is_me):
-    return {"feed": user.feed, 'STATIC_URL': context['STATIC_URL']}
+    return {"entries": user.feed.entries.all()[:10], 'STATIC_URL': context['STATIC_URL']}
 
 @register.inclusion_tag("djangoobjfeed/objfeed.html", takes_context=True)
 def objfeed_for_tribe(context, tribe):
-    return {"feed": tribe.feed, 'STATIC_URL': context['STATIC_URL']}
+    return {"entries": tribe.feed.entries.all()[:10], 'STATIC_URL': context['STATIC_URL']}
 
 class RenderNode(django.template.Node):
     def __init__(self, entry, format):

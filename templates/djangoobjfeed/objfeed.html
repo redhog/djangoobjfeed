@@ -8,7 +8,7 @@
 
 
 <div id="feed">
-{% for entry in feed.entries.all %}
+{% for entry in entries %}
   {% render entry "html" %}
 {% endfor %}
 </div>
