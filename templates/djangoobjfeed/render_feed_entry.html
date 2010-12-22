@@ -7,7 +7,7 @@
 
 {% block feed_entry %}
   <div class="feed_entry">
-    <img src="{% avatar_url feed_entry.author 40 %}" alt="Photo of {{ feed_entry.author }}" class="avatar" />
+    <img src="{% avatar_url feed_entry.author 50 %}" alt="Photo of {{ feed_entry.author }}" class="avatar" />
     <div class="entry_content">
 
       {% block feed_entry_header %}
@@ -21,7 +21,13 @@
       </div>
       
       <div class="entry_footer">
-        <span class="timestamp">For 23 minutter siden</span>
+        <span class="timestamp">
+	  {% if 1 %} <!-- Would have been good to check if this is older than X days and then show date -->
+	    {% trans "Posted" %} {{ feed_entry.posted_at|timesince }} {% trans "ago" %} 
+          {% else %}
+	    {{ feed_entry.posted_at|time }}
+	  {% endif %}
+	</span>
         <span class="autohide-button" id="comment_for_{% if feed_entry.subject %}comment_{% endif %}{{feed_entry.id}}-button">Kommenter</span>
         <span class="last">Lagre &oslash;kt</span>
         <div class="clearfloat"></div>                              
