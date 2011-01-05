@@ -107,35 +107,43 @@ class ObjFeedEntry(ObjFeedEntryBase, fcdjangoutils.modelhelpers.SubclasModelMixi
         raise NotImplementedError
 
     @classmethod
-    def get_copy_feeds_for_author(cls, instance, author):
-        for is_for, feed in cls.get_subscription_feeds_for_author(instance, author):
-            yield is_for, feed
-        for is_for, feed in cls.get_friend_feeds_for_author(instance, author):
-            yield is_for, feed
+    def copy_feeds(cls, instance, author):
+        for method in dir(cls):
+            if method.endswith("_feeds_for_obj"):
+                for is_for, feed in getattr(cls, method)(instance, author):
+                    yield is_for, feed
 
     @classmethod
-    def get_subscription_feeds_for_author(cls, instance, author):
+    def subscription_feeds_for_obj(cls, instance, author):
         for subscription in author.subscribed_on_by_feeds.all():
             yield (subscription.is_for, subscription.feed.superclassobject)
 
     @classmethod
-    def get_friend_feeds_for_author(cls, instance, author):
+    def own_feeds_for_obj(cls, instance, author):
+        yield lambda feed_entry: True, author.feed.superclassobject
+
+    @classmethod
+    def friend_feeds_for_obj(cls, instance, author):
         if hasattr(author, 'friends'):
             for friend in author.friends.all():
                 if hasattr(friend, 'feed'):
                     yield lambda feed_entry: True, friend.feed
 
     @classmethod
+    def obj_is_new(cls, instance):
+        return instance.feed_entry.count() == 0
+
+    @classmethod
+    def obj_needs_feed_entry(cls, instance):
+        return cls.obj_is_new(instance)
+
+    @classmethod
     def obj_post_save(cls, sender, instance, **kwargs):
         # Maybe we want changes to objects too? Then uncomment this...
-        if instance.feed_entry.all():
+        if not cls.obj_needs_feed_entry(instance):
             return
         author = cls.get_author_from_obj(instance)
-        cls(feed=author.feed.superclassobject,
-            author = author,
-            obj = instance).save()
-
-        for matches_subscription, feed in cls.get_copy_feeds_for_author(instance, author):
+        for matches_subscription, feed in cls.copy_feeds(instance, author):
             feed_entry = cls(feed=feed,
                              author = author,
                              obj = instance)
