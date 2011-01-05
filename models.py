@@ -103,6 +103,29 @@ class ObjFeedEntry(ObjFeedEntryBase, fcdjangoutils.modelhelpers.SubclasModelMixi
     author = django.db.models.ForeignKey(django.contrib.auth.models.User, related_name="feed_postings")
 
     @classmethod
+    def get_author_from_obj(cls, instance):
+        raise NotImplementedError
+
+    @classmethod
+    def get_copy_feeds_for_author(cls, instance, author):
+        for is_for, feed in cls.get_subscription_feeds_for_author(instance, author):
+            yield is_for, feed
+        for is_for, feed in cls.get_friend_feeds_for_author(instance, author):
+            yield is_for, feed
+
+    @classmethod
+    def get_subscription_feeds_for_author(cls, instance, author):
+        for subscription in author.subscribed_on_by_feeds.all():
+            yield (subscription.is_for, subscription.feed.superclassobject)
+
+    @classmethod
+    def get_friend_feeds_for_author(cls, instance, author):
+        if hasattr(author, 'friends'):
+            for friend in author.friends.all():
+                if hasattr(friend, 'feed'):
+                    yield lambda feed_entry: True, friend.feed
+
+    @classmethod
     def obj_post_save(cls, sender, instance, **kwargs):
         # Maybe we want changes to objects too? Then uncomment this...
         if instance.feed_entry.all():
@@ -111,11 +134,12 @@ class ObjFeedEntry(ObjFeedEntryBase, fcdjangoutils.modelhelpers.SubclasModelMixi
         cls(feed=author.feed.superclassobject,
             author = author,
             obj = instance).save()
-        for subscription in author.subscribed_on_by_feeds.all():
-            feed_entry = cls(feed=subscription.feed.superclassobject,
+
+        for matches_subscription, feed in cls.get_copy_feeds_for_author(instance, author):
+            feed_entry = cls(feed=feed,
                              author = author,
                              obj = instance)
-            if subscription.is_for(feed_entry):
+            if matches_subscription(feed_entry):
                 feed_entry.save()
 
     # Very very spartan so it can't break into infinite recursion hell... I.e. DONT't call templates here!!!
@@ -128,6 +152,11 @@ class ObjFeedEntry(ObjFeedEntryBase, fcdjangoutils.modelhelpers.SubclasModelMixi
     @fcdjangoutils.modelhelpers.subclassproxy
     def get_absolute_url(self):
         return self.obj.get_absolute_url()
+
+    @fcdjangoutils.modelhelpers.subclassproxy
+    @property
+    def title(self):
+        return getattr(self.obj, 'title', getattr(self.obj, 'name', None))
 
     display_name = fcdjangoutils.modelhelpers.subclassproxy(ObjFeedEntryBase.display_name)
 
