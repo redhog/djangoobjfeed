@@ -58,35 +58,35 @@ class UserFeedSubscription(ObjFeedSubscription):
 
 # Feed entries
 
-class ObjFeedEntryBaseManager(django.db.models.Manager):
+class FeedEntryManager(django.db.models.Manager):
     def get_query_set(self):
-        return django.db.models.Manager.get_query_set(self).order_by("posted_at")
+        return django.db.models.Manager.get_query_set(self).order_by("obj_feed_entry__posted_at")
+
+class FeedEntry(django.db.models.Model, fcdjangoutils.modelhelpers.SubclasModelMixin):
+    objects = FeedEntryManager()
+    feed = django.db.models.ForeignKey("ObjFeed", related_name="entries")
+    obj_feed_entry = django.db.models.ForeignKey("ObjFeedEntry", related_name="feed_entry")
+
+    @property
+    def display_name(self):
+        return self.obj_feed_entry.subclassobject.display_name
+
+    def render(self, format = 'html', context = None):
+        ctx = django.template.Context({})
+        ctx['csrf_token'] = context['csrf_token']
+        ctx['feed_entry'] = self
+        return django.template.loader.get_template(self.obj_feed_entry.template % {'format':format}
+                                                   ).render(ctx)
+
+# Feed entry adaptors for objects
 
 class ObjFeedEntryBase(django.db.models.Model, fcdjangoutils.modelhelpers.SubclasModelMixin):
     class Meta:
         abstract = True
 
-    objects = ObjFeedEntryBaseManager()
-
-    posted_at = django.db.models.DateTimeField(auto_now=True)
-
     @property
     def display_name(self):
         return type(self).__name__[:-len('FeedEntry')]        
-
-    def render(self, format = 'html', context = None):
-        # cls = type(self)
-        # cache = '_compiled_template_' + format
-        # if not hasattr(cls, cache):
-        #     setattr(cls, cache, django.template.loader.get_template(self.template % {'format':format}))
-        # return getattr(cls, cache).render(django.template.Context({'feed_entry': self}))
-
-        ctx = django.template.Context({})
-        ctx['csrf_token'] = context['csrf_token']
-        ctx['feed_entry'] = self
-        
-        return django.template.loader.get_template(self.template % {'format':format}
-                                                   ).render(ctx)
 
 
 class ObjFeedEntry(ObjFeedEntryBase, fcdjangoutils.modelhelpers.SubclasModelMixin):
@@ -99,7 +99,7 @@ class ObjFeedEntry(ObjFeedEntryBase, fcdjangoutils.modelhelpers.SubclasModelMixi
     @fcdjangoutils.modelhelpers.subclassproxy
     @property
     def obj(self): raise fcdjangoutils.modelhelpers.MustBeOverriddenError
-    feed = django.db.models.ForeignKey("ObjFeed", related_name="entries")
+    posted_at = django.db.models.DateTimeField(auto_now=True)
     author = django.db.models.ForeignKey(django.contrib.auth.models.User, related_name="feed_postings")
 
     @classmethod
@@ -143,10 +143,12 @@ class ObjFeedEntry(ObjFeedEntryBase, fcdjangoutils.modelhelpers.SubclasModelMixi
         if not cls.obj_needs_feed_entry(instance):
             return
         author = cls.get_author_from_obj(instance)
-        for matches_subscription, feed in cls.copy_feeds(instance, author):
-            feed_entry = cls(feed=feed,
-                             author = author,
+        obj_feed_entry = cls(author = author,
                              obj = instance)
+        obj_feed_entry.save()
+        for matches_subscription, feed in cls.copy_feeds(instance, author):
+            feed_entry = FeedEntry(obj_feed_entry=obj_feed_entry,
+                                   feed=feed)
             if matches_subscription(feed_entry):
                 feed_entry.save()
 

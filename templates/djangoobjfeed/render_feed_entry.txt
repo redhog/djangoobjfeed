@@ -2,11 +2,11 @@
   {% block feed_entry_header %}
     {{feed_entry.display_name}} [{{feed_entry.get_absolute_url}}]
     by
-    {{feed_entry.author}} [{{feed_entry.author.get_absolute_url}}]
+    {{feed_entry.obj_feed_entry.author}} [{{feed_entry.obj_feed_entry.author.get_absolute_url}}]
   {% endblock %}
   {% block feed_entry_body %}
   {% endblock %}
-  {% for sub_entry in feed_entry.comments_in.all %}
+  {% for sub_entry in feed_entry.obj_feed_entry.comments_in.all %}
     --------
     {% render sub_entry "txt" %}
   {% endfor %}

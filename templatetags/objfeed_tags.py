@@ -4,11 +4,11 @@ register = django.template.Library()
 
 @register.inclusion_tag("djangoobjfeed/objfeed.html", takes_context=True)
 def objfeed_for_user(context, user, is_me):
-    return {"entries": user.feed.entries.order_by("-posted_at").all()[:5], 'STATIC_URL': context['STATIC_URL']}
+    return {"entries": user.feed.entries.order_by("-obj_feed_entry__posted_at").all()[:5], 'STATIC_URL': context['STATIC_URL']}
 
 @register.inclusion_tag("djangoobjfeed/objfeed.html", takes_context=True)
 def objfeed_for_tribe(context, tribe):
-    return {"entries": tribe.feed.entries.order_by("-posted_at").all()[:5], 'STATIC_URL': context['STATIC_URL']}
+    return {"entries": tribe.feed.entries.order_by("-obj_feed_entry__posted_at").all()[:5], 'STATIC_URL': context['STATIC_URL']}
 
 class RenderNode(django.template.Node):
     def __init__(self, entry, format):
