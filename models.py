@@ -172,9 +172,13 @@ class ObjFeedEntry(django.db.models.Model, fcdjangoutils.modelhelpers.SubclasMod
         if not cls.obj_needs_feed_entry(instance):
             return
         author = cls.get_author_from_obj(instance)
-        obj_feed_entry = cls(author = author,
-                             obj = instance)
-        obj_feed_entry.save()
+        obj_feed_entries = instance.feed_entry.all()
+        if len(obj_feed_entries) > 0:
+            obj_feed_entry = obj_feed_entries[0]
+        else:
+            obj_feed_entry = cls(author = author,
+                                 obj = instance)
+            obj_feed_entry.save()
         for matches_subscription, feed in cls.copy_feeds(instance, author):
             feed_entry = FeedEntry(obj_feed_entry=obj_feed_entry,
                                    feed=feed)
