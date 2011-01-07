@@ -1,6 +1,6 @@
 {% extends "djangoobjfeed/render_feed_entry.html" %}
 
 {% block feed_entry_body %}
-  {{feed_entry.subject}}<br />
-  {{feed_entry.content}}
+  {{feed_entry.obj_feed_entry.subject}}<br />
+  {{feed_entry.obj_feed_entry.content}}
 {% endblock %}

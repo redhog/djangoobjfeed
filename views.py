@@ -8,15 +8,12 @@ def post_comment(request, *arg, **kw):
 
     if 'comment_on_feed_entry' in request.POST:
         comment_on_feed_entry = djangoobjfeed.models.ObjFeedEntry.objects.get(id=int(request.POST['comment_on_feed_entry']))
-        feed = comment_on_feed_entry.feed
 
     if 'comment_on_comment' in request.POST:
         comment_on_comment = djangoobjfeed.models.CommentFeedEntry.objects.get(id=int(request.POST['comment_on_comment']))
-        feed = comment_on_comment.feed
 
     djangoobjfeed.models.CommentFeedEntry(
         author = request.user,
-        feed = feed,
         comment_on_feed_entry = comment_on_feed_entry,
         comment_on_comment = comment_on_comment,
         subject = request.POST['subject'],

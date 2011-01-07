@@ -78,18 +78,47 @@ class FeedEntry(django.db.models.Model, fcdjangoutils.modelhelpers.SubclasModelM
         return django.template.loader.get_template(self.obj_feed_entry.template % {'format':format}
                                                    ).render(ctx)
 
-# Feed entry adaptors for objects
+    # Very very spartan so it can't break into infinite recursion hell... I.e. DONT't call templates here!!!
+    def __repr__(self):
+        return "%s: %s posted to %s" % (type(self), self.obj_feed_entry.author, self.feed)
 
-class ObjFeedEntryBase(django.db.models.Model, fcdjangoutils.modelhelpers.SubclasModelMixin):
-    class Meta:
-        abstract = True
+    def __unicode__(self):
+        return "%s posted to %s" % (self.render('txt'), self.feed)
+
+class CommentFeedEntryManager(django.db.models.Manager):
+    def get_query_set(self):
+        return django.db.models.Manager.get_query_set(self).order_by("posted_at")
+
+class CommentFeedEntry(django.db.models.Model, fcdjangoutils.modelhelpers.SubclasModelMixin):
+    objects = CommentFeedEntryManager()
+
+    posted_at = django.db.models.DateTimeField(auto_now=True)
+    author = django.db.models.ForeignKey(django.contrib.auth.models.User, related_name="feed_comment_postings")
+
+    comment_on_feed_entry = django.db.models.ForeignKey("ObjFeedEntry", related_name="comments_in", null=True, blank=True)
+    comment_on_comment = django.db.models.ForeignKey("CommentFeedEntry", related_name="comments_in", null=True, blank=True)
+    subject = django.db.models.CharField(max_length=200)
+    content = django.db.models.TextField()
+
+    template = "djangoobjfeed/render_comment_entry.%(format)s"
 
     @property
     def display_name(self):
         return type(self).__name__[:-len('FeedEntry')]        
 
+    def render(self, format = 'html', context = None):
+        ctx = django.template.Context({})
+        ctx['csrf_token'] = context['csrf_token']
+        class Dummy(object):
+            pass
+        ctx['feed_entry'] = Dummy()
+        ctx['feed_entry'].obj_feed_entry = self
+        return django.template.loader.get_template(self.template % {'format':format}
+                                                   ).render(ctx)
 
-class ObjFeedEntry(ObjFeedEntryBase, fcdjangoutils.modelhelpers.SubclasModelMixin):
+# Feed entry adaptors for objects
+
+class ObjFeedEntry(django.db.models.Model, fcdjangoutils.modelhelpers.SubclasModelMixin):
     class __metaclass__(django.db.models.Model.__metaclass__):
         def __init__(cls, *arg, **kw):
             django.db.models.Model.__metaclass__.__init__(cls, *arg, **kw)
@@ -154,10 +183,10 @@ class ObjFeedEntry(ObjFeedEntryBase, fcdjangoutils.modelhelpers.SubclasModelMixi
 
     # Very very spartan so it can't break into infinite recursion hell... I.e. DONT't call templates here!!!
     def __repr__(self):
-        return "%s: %s posted to %s" % (type(self), self.author, self.feed)
+        return "%s by %s" % (type(self), self.author)
 
     def __unicode__(self):
-        return "%s posted to %s" % (self.render('txt'), self.feed)
+        return unicode(FeedEntry(feed=None, obj_feed_entry=self))
 
     @fcdjangoutils.modelhelpers.subclassproxy
     def get_absolute_url(self):
@@ -168,23 +197,15 @@ class ObjFeedEntry(ObjFeedEntryBase, fcdjangoutils.modelhelpers.SubclasModelMixi
     def title(self):
         return getattr(self.obj, 'title', getattr(self.obj, 'name', None))
 
-    display_name = fcdjangoutils.modelhelpers.subclassproxy(ObjFeedEntryBase.display_name)
+    @fcdjangoutils.modelhelpers.subclassproxy
+    @property
+    def display_name(self):
+        return type(self).__name__[:-len('FeedEntry')]
 
     @fcdjangoutils.modelhelpers.subclassproxy
     @property
     def template(self):
         return "djangoobjfeed/render_feed_entry.%(format)s"
-
-class CommentFeedEntry(ObjFeedEntryBase):
-    feed = django.db.models.ForeignKey("ObjFeed", related_name="comments")
-    author = django.db.models.ForeignKey(django.contrib.auth.models.User, related_name="feed_comment_postings")
-
-    comment_on_feed_entry = django.db.models.ForeignKey(ObjFeedEntry, related_name="comments_in", null=True, blank=True)
-    comment_on_comment = django.db.models.ForeignKey("CommentFeedEntry", related_name="comments_in", null=True, blank=True)
-    subject = django.db.models.CharField(max_length=200)
-    content = django.db.models.TextField()
-
-    template = "djangoobjfeed/render_comment_entry.%(format)s"
 
 
 # Feed entry adapers
