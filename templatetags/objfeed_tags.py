@@ -4,11 +4,38 @@ register = django.template.Library()
 
 @register.inclusion_tag("djangoobjfeed/objfeed.html", takes_context=True)
 def objfeed_for_user(context, user, is_me):
-    return {"entries": user.feed.entries.order_by("-obj_feed_entry__posted_at").all()[:5], 'STATIC_URL': context['STATIC_URL']}
+    context["entries"] = user.feed.entries.order_by("-obj_feed_entry__posted_at").all()[:5]
+    return context
 
 @register.inclusion_tag("djangoobjfeed/objfeed.html", takes_context=True)
 def objfeed_for_tribe(context, tribe):
-    return {"entries": tribe.feed.entries.order_by("-obj_feed_entry__posted_at").all()[:5], 'STATIC_URL': context['STATIC_URL']}
+    context["entries"] = tribe.feed.entries.order_by("-obj_feed_entry__posted_at").all()[:5]
+    return context
+
+
+
+@register.inclusion_tag("djangoobjfeed/objfeed.html", takes_context=True)
+def objfeed(context, feed):
+    context["entries"] = feed.entries.order_by("-obj_feed_entry__posted_at").all()[:5]
+    return context
+
+@register.inclusion_tag("djangoobjfeed/comments.html", takes_context=True)
+def objfeed_comments(context, obj_feed_entry):
+    context["obj_feed_entry"] = obj_feed_entry
+    return context
+
+
+
+@register.inclusion_tag("djangoobjfeed/objfeed.html", takes_context=True)
+def objfeed_for_obj(context, obj):
+    context["entries"] = obj.feed.entries.order_by("-obj_feed_entry__posted_at").all()[:5]
+    return context
+
+@register.inclusion_tag("djangoobjfeed/comments.html", takes_context=True)
+def objfeed_comments_for_obj(context, obj):
+    context["obj_feed_entry"] = obj.feed_entry
+    return context
+
 
 class RenderNode(django.template.Node):
     def __init__(self, entry, format):
