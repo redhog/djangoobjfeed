@@ -28,15 +28,15 @@
 	    {{ feed_entry.obj_feed_entry.posted_at|time }}
 	  {% endif %}
 	</span>
-        <span class="autohide-button" id="comment_for_{% if feed_entry.is_comment %}comment_{% endif %}{{feed_entry.obj_feed_entry.id}}-button">Kommenter</span>
+        <span class="autohide-button" id="comment_for_{% if feed_entry.obj_feed_entry.is_comment %}comment_{% endif %}{{feed_entry.obj_feed_entry.id}}-button">Kommenter</span>
         <span class="last">Lagre &oslash;kt</span>
         <div class="clearfloat"></div>                              
       </div>
       
-      <form action="{% url djangoobjfeed.views.post_comment %}" method="POST" class="autohide-body" id="comment_for_{% if feed_entry.is_comment %}comment_{% endif %}{{feed_entry.obj_feed_entry.id}}-body">
+      <form action="{% url djangoobjfeed.views.post_comment %}" method="POST" class="autohide-body" id="comment_for_{% if feed_entry.obj_feed_entry.is_comment %}comment_{% endif %}{{feed_entry.obj_feed_entry.id}}-body">
         <fieldset>
           {% csrf_token %}
-          {% if feed_entry.is_comment %}
+          {% if feed_entry.obj_feed_entry.is_comment %}
             <input type="hidden" name="comment_on_comment" value="{{feed_entry.obj_feed_entry.id}}">
           {% else %}
             <input type="hidden" name="comment_on_feed_entry" value="{{feed_entry.obj_feed_entry.id}}">

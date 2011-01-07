@@ -101,6 +101,8 @@ class CommentFeedEntry(django.db.models.Model, fcdjangoutils.modelhelpers.Subcla
 
     template = "djangoobjfeed/render_comment_entry.%(format)s"
 
+    is_comment = True
+
     @property
     def display_name(self):
         return type(self).__name__[:-len('FeedEntry')]        
@@ -111,7 +113,6 @@ class CommentFeedEntry(django.db.models.Model, fcdjangoutils.modelhelpers.Subcla
         class Dummy(object):
             pass
         ctx['feed_entry'] = Dummy()
-        ctx['feed_entry'].is_comment = True
         ctx['feed_entry'].obj_feed_entry = self
         return django.template.loader.get_template(self.template % {'format':format}
                                                    ).render(ctx)
