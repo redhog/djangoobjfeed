@@ -179,7 +179,7 @@ class ObjFeedEntry(django.db.models.Model, fcdjangoutils.modelhelpers.SubclasMod
         else:
             obj_feed_entry = cls(author = author,
                                  obj = instance)
-            obj_feed_entry.save()
+        obj_feed_entry.save()
         for matches_subscription, feed in cls.copy_feeds(instance, author):
             feed_entry = FeedEntry(obj_feed_entry=obj_feed_entry,
                                    feed=feed)
