@@ -82,7 +82,7 @@ class ObjFeedEntryBase(django.db.models.Model, fcdjangoutils.modelhelpers.Subcla
         # return getattr(cls, cache).render(django.template.Context({'feed_entry': self}))
 
         ctx = django.template.Context({})
-        ctx['csrf_token'] = context['csrf_token']
+        if context: ctx['csrf_token'] = context['csrf_token']
         ctx['feed_entry'] = self
         
         return django.template.loader.get_template(self.template % {'format':format}
