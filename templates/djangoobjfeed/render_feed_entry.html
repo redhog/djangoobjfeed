@@ -36,12 +36,11 @@
       <form action="{% url djangoobjfeed.views.post_comment %}" method="POST" class="autohide-body" id="comment_for_{% if feed_entry.obj_feed_entry.subject %}comment_{% endif %}{{feed_entry.obj_feed_entry.id}}-body">
         <fieldset>
           {% csrf_token %}
-          {% if feed_entry.obj_feed_entry.subject %}
+          {% if feed_entry.is_comment %}
             <input type="hidden" name="comment_on_comment" value="{{feed_entry.obj_feed_entry.id}}">
           {% else %}
             <input type="hidden" name="comment_on_feed_entry" value="{{feed_entry.obj_feed_entry.id}}">
           {% endif %}
-          <input type="text" name="subject" class="textfield" />
           <textarea name="content" cols="0" rows="0" class="textfield"></textarea>
           <input type="submit" class="fancy_grey_button" />
         </fieldset>

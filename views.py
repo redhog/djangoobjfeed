@@ -16,7 +16,6 @@ def post_comment(request, *arg, **kw):
         author = request.user,
         comment_on_feed_entry = comment_on_feed_entry,
         comment_on_comment = comment_on_comment,
-        subject = request.POST['subject'],
         content = request.POST['content']
         ).save()
 

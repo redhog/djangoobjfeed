@@ -97,7 +97,6 @@ class CommentFeedEntry(django.db.models.Model, fcdjangoutils.modelhelpers.Subcla
 
     comment_on_feed_entry = django.db.models.ForeignKey("ObjFeedEntry", related_name="comments_in", null=True, blank=True)
     comment_on_comment = django.db.models.ForeignKey("CommentFeedEntry", related_name="comments_in", null=True, blank=True)
-    subject = django.db.models.CharField(max_length=200)
     content = django.db.models.TextField()
 
     template = "djangoobjfeed/render_comment_entry.%(format)s"
@@ -112,6 +111,7 @@ class CommentFeedEntry(django.db.models.Model, fcdjangoutils.modelhelpers.Subcla
         class Dummy(object):
             pass
         ctx['feed_entry'] = Dummy()
+        ctx['feed_entry'].is_comment = True
         ctx['feed_entry'].obj_feed_entry = self
         return django.template.loader.get_template(self.template % {'format':format}
                                                    ).render(ctx)
@@ -186,7 +186,7 @@ class ObjFeedEntry(django.db.models.Model, fcdjangoutils.modelhelpers.SubclasMod
         return "%s by %s" % (type(self), self.author)
 
     def __unicode__(self):
-        return unicode(FeedEntry(feed=None, obj_feed_entry=self))
+        return unicode(FeedEntry(obj_feed_entry=self))
 
     @fcdjangoutils.modelhelpers.subclassproxy
     def get_absolute_url(self):
