@@ -107,7 +107,7 @@ class CommentFeedEntry(django.db.models.Model, fcdjangoutils.modelhelpers.Subcla
 
     def render(self, format = 'html', context = None):
         ctx = django.template.Context({})
-        ctx['csrf_token'] = context['csrf_token']
+        if context: ctx['csrf_token'] = context['csrf_token']
         class Dummy(object):
             pass
         ctx['feed_entry'] = Dummy()
