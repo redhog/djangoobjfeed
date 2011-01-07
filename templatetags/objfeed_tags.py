@@ -4,6 +4,7 @@ register = django.template.Library()
 
 @register.inclusion_tag("djangoobjfeed/objfeed.html", takes_context=True)
 def objfeed_for_user(context, user, is_me):
+    context["feed"] = user.feed
     context["entries"] = user.feed.entries.order_by("-obj_feed_entry__posted_at").all()[:5]
     return context
 
@@ -16,6 +17,7 @@ def objfeed_for_tribe(context, tribe):
 
 @register.inclusion_tag("djangoobjfeed/objfeed.html", takes_context=True)
 def objfeed(context, feed):
+    context["feed"] = feed
     context["entries"] = feed.entries.order_by("-obj_feed_entry__posted_at").all()[:5]
     return context
 

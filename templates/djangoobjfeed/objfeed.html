@@ -8,8 +8,9 @@
 
 {% with STATIC_URL|aadd:"fcdjangoutils/js/expand.js" as url %}{% widget_addjsfile url %}{% endwith %}
 
-<div id="feed">
-{% for entry in entries %}
-  {% render entry "html" %}
-{% endfor %}
+<div class="feed" id="feed_{{feed.id}}">
+  <div class="feed_url" style="display: none;">{% url djangoobjfeed.views.get_objfeed objfeed_id=feed.id %}</div>
+  {% for entry in entries %}
+    {% render entry "html" %}
+  {% endfor %}
 </div>
