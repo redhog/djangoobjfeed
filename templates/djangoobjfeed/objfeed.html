@@ -3,9 +3,10 @@
 {% load pagination_tags %}
 {% load humanize %}
 {% load objfeed_tags %}
+{% load widgettag_tags %}
+{% load datatypes %}
 
-<script src="{{ STATIC_URL }}fcdjangoutils/js/expand.js"></script>
-
+{% with STATIC_URL|aadd:"fcdjangoutils/js/expand.js" as url %}{% widget_addjsfile url %}{% endwith %}
 
 <div id="feed">
 {% for entry in entries %}
