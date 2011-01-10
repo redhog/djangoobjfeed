@@ -4,16 +4,17 @@ import pinax.apps.tribes.models
 import microblogging.models
 import pinax.apps.blog.models
 import fcdjangoutils.modelhelpers
+import fcdjangoutils.signalautoconnectmodel
 import django.template
 import django.template.loader
 import datetime
 
 # Feeds
 
-class ObjFeed(django.db.models.Model, fcdjangoutils.modelhelpers.SubclasModelMixin):
-    class __metaclass__(django.db.models.Model.__metaclass__):
+class ObjFeed(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, fcdjangoutils.modelhelpers.SubclasModelMixin):
+    class __metaclass__(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel.__metaclass__):
         def __init__(cls, *arg, **kw):
-            django.db.models.Model.__metaclass__.__init__(cls, *arg, **kw)
+            fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel.__metaclass__.__init__(cls, *arg, **kw)
             if cls.__name__ != 'ObjFeed':
                 django.db.models.signals.post_save.connect(cls.obj_post_save, sender=cls.owner.field.rel.to)
 
@@ -48,7 +49,7 @@ class TribeFeed(ObjFeed):
 
 # Subscriptions
 
-class ObjFeedSubscription(django.db.models.Model):
+class ObjFeedSubscription(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel):
     feed = django.db.models.ForeignKey(ObjFeed, related_name="subscriptions")
 
     def is_for(self, feed_entry):
@@ -68,7 +69,7 @@ class FeedEntryManager(django.db.models.Manager):
     def get_query_set(self):
         return django.db.models.Manager.get_query_set(self).order_by("obj_feed_entry__posted_at")
 
-class FeedEntry(django.db.models.Model, fcdjangoutils.modelhelpers.SubclasModelMixin):
+class FeedEntry(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, fcdjangoutils.modelhelpers.SubclasModelMixin):
     objects = FeedEntryManager()
     feed = django.db.models.ForeignKey("ObjFeed", related_name="all_entries")
     obj_feed_entry = django.db.models.ForeignKey("ObjFeedEntry", related_name="feed_entry")
@@ -95,7 +96,7 @@ class CommentFeedEntryManager(django.db.models.Manager):
     def get_query_set(self):
         return django.db.models.Manager.get_query_set(self).order_by("posted_at")
 
-class CommentFeedEntry(django.db.models.Model, fcdjangoutils.modelhelpers.SubclasModelMixin):
+class CommentFeedEntry(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, fcdjangoutils.modelhelpers.SubclasModelMixin):
     objects = CommentFeedEntryManager()
 
     posted_at = django.db.models.DateTimeField(auto_now=True)
@@ -125,18 +126,23 @@ class CommentFeedEntry(django.db.models.Model, fcdjangoutils.modelhelpers.Subcla
 
 # Feed entry adaptors for objects
 
-class ObjFeedEntry(django.db.models.Model, fcdjangoutils.modelhelpers.SubclasModelMixin):
-    class __metaclass__(django.db.models.Model.__metaclass__):
+class ObjFeedEntry(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, fcdjangoutils.modelhelpers.SubclasModelMixin):
+    class __metaclass__(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel.__metaclass__):
         def __init__(cls, *arg, **kw):
-            django.db.models.Model.__metaclass__.__init__(cls, *arg, **kw)
+            fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel.__metaclass__.__init__(cls, *arg, **kw)
             if cls.__name__ != 'ObjFeedEntry':
                 django.db.models.signals.post_save.connect(cls.obj_post_save, sender=cls.obj.field.rel.to)
 
     @fcdjangoutils.modelhelpers.subclassproxy
     @property
     def obj(self): raise fcdjangoutils.modelhelpers.MustBeOverriddenError
-    posted_at = django.db.models.DateTimeField(auto_now=True)
+    posted_at = django.db.models.DateTimeField(blank=True)
     author = django.db.models.ForeignKey(django.contrib.auth.models.User, related_name="feed_postings")
+
+    @classmethod
+    def on_pre_save(cls, sender, instance, **kwargs):
+        if instance.posted_at is None:
+            instance.posted_at = datetime.datetime.now()
 
     @classmethod
     def get_author_from_obj(cls, instance):
@@ -163,7 +169,7 @@ class ObjFeedEntry(django.db.models.Model, fcdjangoutils.modelhelpers.SubclasMod
         if hasattr(author, 'friends'):
             for friend in author.friends.all():
                 if hasattr(friend, 'feed'):
-                    yield lambda feed_entry: True, friend.feed
+                    yield lambda feed_entry: True, friend.feed.superclassobject
 
     @classmethod
     def obj_is_new(cls, instance):
