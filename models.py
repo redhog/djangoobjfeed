@@ -6,6 +6,7 @@ import pinax.apps.blog.models
 import fcdjangoutils.modelhelpers
 import django.template
 import django.template.loader
+import datetime
 
 # Feeds
 
@@ -32,6 +33,11 @@ class ObjFeed(django.db.models.Model, fcdjangoutils.modelhelpers.SubclasModelMix
 
     def __unicode__(self):
         return "Feed for %s" % (self.owner,)
+
+    @property
+    def entries(self):
+        return self.all_entries.filter(obj_feed_entry__posted_at__lte = datetime.datetime.now())
+
 
 class UserFeed(ObjFeed):
     owner = django.db.models.OneToOneField(django.contrib.auth.models.User, primary_key=True, related_name="feed")
@@ -64,7 +70,7 @@ class FeedEntryManager(django.db.models.Manager):
 
 class FeedEntry(django.db.models.Model, fcdjangoutils.modelhelpers.SubclasModelMixin):
     objects = FeedEntryManager()
-    feed = django.db.models.ForeignKey("ObjFeed", related_name="entries")
+    feed = django.db.models.ForeignKey("ObjFeed", related_name="all_entries")
     obj_feed_entry = django.db.models.ForeignKey("ObjFeedEntry", related_name="feed_entry")
 
     @property
