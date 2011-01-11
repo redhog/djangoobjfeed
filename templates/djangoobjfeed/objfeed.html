@@ -11,14 +11,16 @@
 <div class="feed" id="feed_{{feed.id}}">
   <div class="feed_url" style="display: none;">{% url djangoobjfeed.views.get_objfeed objfeed_id=feed.id %}</div>
 
-  <form action="{% url djangoobjfeed.views.post %}" method="POST" id="message_for_{{feed.id}}">
-    <fieldset>
-      {% csrf_token %}
-      <input type="hidden" name="feed" value="{{feed.id}}">
-      <textarea name="content" cols="0" rows="0" class="textfield"></textarea>
-      <button type="submit">{% trans "Save comment" %}</button>
-    </fieldset>
-  </form>
+  {% if allowed_to_post %}
+    <form action="{% url djangoobjfeed.views.post %}" method="POST" id="message_for_{{feed.id}}">
+      <fieldset>
+	{% csrf_token %}
+	<input type="hidden" name="feed" value="{{feed.id}}">
+	<textarea name="content" cols="0" rows="0" class="textfield"></textarea>
+	<button type="submit">{% trans "Save comment" %}</button>
+      </fieldset>
+    </form>
+  {% endif %}
 
   {% for entry in entries %}
     {% render entry "html" %}

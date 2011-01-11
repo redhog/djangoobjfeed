@@ -37,6 +37,7 @@ def get_objfeed(request, objfeed_id):
     data = {}
     feed = djangoobjfeed.models.ObjFeed.objects.get(id=objfeed_id)
     data["feed"] = feed
+    data["allowed_to_post"] = feed.subclassobject.allowed_to_post(request.user)
     data["entries"] = feed.entries.order_by("-obj_feed_entry__posted_at").all()[:5]
     return django.shortcuts.render_to_response(
         'djangoobjfeed/objfeed.html', 

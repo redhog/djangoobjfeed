@@ -8,6 +8,7 @@ import fcdjangoutils.signalautoconnectmodel
 import django.template
 import django.template.loader
 import datetime
+import friends.models
 
 # Feeds
 
@@ -39,13 +40,23 @@ class ObjFeed(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, fcdja
     def entries(self):
         return self.all_entries.filter(obj_feed_entry__posted_at__lte = datetime.datetime.now())
 
+    def allowed_to_post(self, user):
+        return False
 
 class UserFeed(ObjFeed):
     owner = django.db.models.OneToOneField(django.contrib.auth.models.User, primary_key=True, related_name="feed")
 
+    def allowed_to_post(self, user):
+        if self.owner.id == user.id:
+            return True
+        return user.id in set(u.id for u in friends.models.friend_set_for(self.owner))
+        
 class TribeFeed(ObjFeed):
     owner = django.db.models.OneToOneField(pinax.apps.tribes.models.Tribe, primary_key=True, related_name="feed")
 
+    def allowed_to_post(self, user):
+        # Really, check for membership here
+        return False
 
 # Subscriptions
 
@@ -166,8 +177,9 @@ class ObjFeedEntry(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, 
 
     @classmethod
     def friend_feeds_for_obj(cls, instance, author):
+        # Slightly ugly test...
         if hasattr(author, 'friends'):
-            for friend in author.friends.all():
+            for friend in friends.models.friend_set_for(author):
                 if hasattr(friend, 'feed'):
                     yield lambda feed_entry: True, friend.feed.superclassobject
 
