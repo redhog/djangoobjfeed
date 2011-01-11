@@ -192,7 +192,12 @@ class ObjFeedEntry(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, 
             obj_feed_entry = cls(author = author,
                                  obj = instance)
         obj_feed_entry.save()
+
+        done = set(feed_entry.feed.id for feed_entry in obj_feed_entry.feed_entry.all())
         for matches_subscription, feed in cls.copy_feeds(instance, author):
+            if feed.id in done:
+                continue
+            done.add(feed.id)
             feed_entry = FeedEntry(obj_feed_entry=obj_feed_entry,
                                    feed=feed)
             if matches_subscription(feed_entry):
@@ -226,6 +231,24 @@ class ObjFeedEntry(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, 
 
 
 # Feed entry adapers
+
+class Message(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel):
+    feed = django.db.models.ForeignKey(ObjFeed, related_name="messages")
+    author = django.db.models.ForeignKey(django.contrib.auth.models.User, related_name="messages")
+    content = django.db.models.TextField()
+
+class MessageFeedEntry(ObjFeedEntry):
+    obj = django.db.models.ForeignKey(Message, related_name='feed_entry')
+
+    @classmethod
+    def get_author_from_obj(cls, obj):
+        return obj.author
+
+    template = "djangoobjfeed/render_message_entry.%(format)s"
+
+    @classmethod
+    def feed_feeds_for_obj(cls, instance, author):
+        yield lambda feed_entry: True, instance.feed.superclassobject
 
 class TweetFeedEntry(ObjFeedEntry):
     obj = django.db.models.ForeignKey(microblogging.models.Tweet, related_name='feed_entry')

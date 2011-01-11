@@ -3,6 +3,17 @@ import django.shortcuts
 import djangoobjfeed.models
 import django.contrib.auth.models
 
+def post(request, *arg, **kw):    
+    feed = djangoobjfeed.models.ObjFeed.objects.get(id=int(request.POST['feed']))
+
+    djangoobjfeed.models.Message(
+        feed = feed,
+        author = request.user,
+        content = request.POST['content']
+        ).save()
+
+    return django.shortcuts.redirect(request.META['HTTP_REFERER'])
+
 def post_comment(request, *arg, **kw):    
     comment_on_feed_entry = None
     comment_on_comment = None
