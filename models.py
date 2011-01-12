@@ -90,11 +90,15 @@ class FeedEntry(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, fcd
         return self.obj_feed_entry.subclassobject.display_name
 
     def render(self, format = 'html', context = None):
-        ctx = django.template.Context({})
-        ctx['csrf_token'] = context['csrf_token']
-        ctx['feed_entry'] = self
-        return django.template.loader.get_template(self.obj_feed_entry.template % {'format':format}
-                                                   ).render(ctx)
+        if context is None:
+            context = django.template.Context({})
+        try:
+            context.push()
+            context['feed_entry'] = self
+            return django.template.loader.get_template(self.obj_feed_entry.template % {'format':format}
+                                                       ).render(context)
+        finally:
+            context.pop()
 
     # Very very spartan so it can't break into infinite recursion hell... I.e. DONT't call templates here!!!
     def __repr__(self):
