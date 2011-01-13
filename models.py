@@ -3,6 +3,7 @@ import django.contrib.auth.models
 import pinax.apps.tribes.models
 import microblogging.models
 import pinax.apps.blog.models
+import pinax.apps.photos.models
 import fcdjangoutils.modelhelpers
 import fcdjangoutils.signalautoconnectmodel
 import django.template
@@ -283,3 +284,13 @@ class BlogFeedEntry(ObjFeedEntry):
         return obj.author
 
     template = "djangoobjfeed/render_blog_entry.%(format)s"
+
+class ImageFeedEntry(ObjFeedEntry):
+    obj = django.db.models.ForeignKey(pinax.apps.photos.models.Image, related_name='feed_entry')
+
+    @classmethod
+    def get_author_from_obj(cls, obj):
+        return obj.member
+
+    template = "djangoobjfeed/render_photo_entry.%(format)s"
+

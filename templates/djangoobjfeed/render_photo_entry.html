@@ -1,0 +1,6 @@
+{% extends "djangoobjfeed/render_feed_entry.html" %}
+
+{% block feed_entry_body %}
+  {{ feed_entry.obj_feed_entry.obj.title }}<br />
+  <a href="{% url pinax.apps.photos.views.details id=feed_entry.obj_feed_entry.obj.id %}"><img src="{{ feed_entry.obj_feed_entry.obj.get_display_url }}" alt="{{ feed_entry.obj_feed_entry.obj.title }}"/></a>
+{% endblock %}
