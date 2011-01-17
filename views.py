@@ -33,6 +33,25 @@ def post_comment(request, *arg, **kw):
 
     return django.shortcuts.redirect(request.META['HTTP_REFERER'])
 
+def update_comment(request, *arg, **kw):    
+    comment = djangoobjfeed.models.CommentFeedEntry.objects.get(id=int(request.POST['comment']))
+
+    assert comment.author.id == request.user.id
+
+    comment.content = request.POST['content']
+    comment.save()
+
+    return django.shortcuts.redirect(request.META['HTTP_REFERER'])
+
+def delete_comment(request, *arg, **kw):    
+    comment = djangoobjfeed.models.CommentFeedEntry.objects.get(id=int(request.GET['comment']))
+
+    assert comment.author.id == request.user.id
+
+    comment.delete()
+
+    return django.shortcuts.redirect(request.META['HTTP_REFERER'])
+
 def get_objfeed(request, objfeed_id):
     data = {}
     feed = djangoobjfeed.models.ObjFeed.objects.get(id=objfeed_id)
