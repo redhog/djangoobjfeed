@@ -131,14 +131,16 @@ class CommentFeedEntry(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectMod
         return type(self).__name__[:-len('FeedEntry')]        
 
     def render(self, format = 'html', context = None):
-        ctx = django.template.Context({})
-        if context: ctx['csrf_token'] = context['csrf_token']
         class Dummy(object):
             pass
-        ctx['feed_entry'] = Dummy()
-        ctx['feed_entry'].obj_feed_entry = self
-        return django.template.loader.get_template(self.template % {'format':format}
-                                                   ).render(ctx)
+        context.push()
+        try:
+            context['feed_entry'] = Dummy()
+            context['feed_entry'].obj_feed_entry = self
+            return django.template.loader.get_template(self.template % {'format':format}
+                                                       ).render(context)
+        finally:
+            context.pop()
 
 # Feed entry adaptors for objects
 
