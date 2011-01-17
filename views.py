@@ -3,6 +3,15 @@ import django.shortcuts
 import djangoobjfeed.models
 import django.contrib.auth.models
 
+def get_return_address(request):
+    if '_next' in request.POST:
+        return request.POST['_next']
+    if '_next' in request.GET:
+        return request.GET['_next']
+    if 'HTTP_REFERER' in request.META:
+        return request.META['HTTP_REFERER']
+    return '/'
+
 def post(request, *arg, **kw):    
     feed = djangoobjfeed.models.ObjFeed.objects.get(id=int(request.POST['feed']))
 
@@ -12,7 +21,7 @@ def post(request, *arg, **kw):
         content = request.POST['content']
         ).save()
 
-    return django.shortcuts.redirect(request.META['HTTP_REFERER'])
+    return django.shortcuts.redirect(get_return_address(request))
 
 def post_comment(request, *arg, **kw):    
     comment_on_feed_entry = None
@@ -31,7 +40,7 @@ def post_comment(request, *arg, **kw):
         content = request.POST['content']
         ).save()
 
-    return django.shortcuts.redirect(request.META['HTTP_REFERER'])
+    return django.shortcuts.redirect(get_return_address(request))
 
 def update_comment(request, *arg, **kw):    
     comment = djangoobjfeed.models.CommentFeedEntry.objects.get(id=int(request.POST['comment']))
@@ -41,7 +50,7 @@ def update_comment(request, *arg, **kw):
     comment.content = request.POST['content']
     comment.save()
 
-    return django.shortcuts.redirect(request.META['HTTP_REFERER'])
+    return django.shortcuts.redirect(get_return_address(request))
 
 def delete_comment(request, *arg, **kw):    
     comment = djangoobjfeed.models.CommentFeedEntry.objects.get(id=int(request.GET['comment']))
@@ -50,7 +59,7 @@ def delete_comment(request, *arg, **kw):
 
     comment.delete()
 
-    return django.shortcuts.redirect(request.META['HTTP_REFERER'])
+    return django.shortcuts.redirect(get_return_address(request))
 
 def get_objfeed(request, objfeed_id):
     data = {}
