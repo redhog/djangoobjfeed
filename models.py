@@ -248,6 +248,12 @@ class ObjFeedEntry(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, 
     def template(self):
         return "djangoobjfeed/render_feed_entry.%(format)s"
 
+    def allowed_to_post_comment(self, user):
+        author = self.author
+        author = getattr(author, 'subclassobject', author)
+        if hasattr(author, 'allowed_to_post_comment'):
+            return author.allowed_to_post_comment(self, user)
+        return True
 
 # Feed entry adapers
 
