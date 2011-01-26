@@ -41,6 +41,10 @@ class ObjFeed(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, fcdja
     def entries(self):
         return self.all_entries.filter(obj_feed_entry__posted_at__lte = datetime.datetime.now())
 
+    @property
+    def own_entries(self):
+        return self.entries
+
     def allowed_to_post(self, user):
         return False
 
@@ -51,7 +55,12 @@ class UserFeed(ObjFeed):
         if self.owner.id == user.id:
             return True
         return user.id in set(u.id for u in friends.models.friend_set_for(self.owner))
-        
+
+    @property
+    def own_entries(self):
+        return self.entries.filter(obj_feed_entry__author__id = self.owner.id)
+
+
 class TribeFeed(ObjFeed):
     owner = django.db.models.OneToOneField(pinax.apps.tribes.models.Tribe, primary_key=True, related_name="feed")
 

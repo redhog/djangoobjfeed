@@ -2,27 +2,32 @@ import django.template
 
 register = django.template.Library()
 
-@register.inclusion_tag("djangoobjfeed/objfeed.html", takes_context=True)
-def objfeed_for_user(context, user, is_me):
-    context["feed"] = user.feed
-    context["allowed_to_post"] = user.feed.subclassobject.allowed_to_post(context['request'].user)
-    context["entries"] = user.feed.entries.order_by("-obj_feed_entry__posted_at").all()[:5]
-    return context
+# @register.inclusion_tag("djangoobjfeed/objfeed.html", takes_context=True)
+# def objfeed_for_user(context, user, is_me):
+#     context["feed"] = user.feed
+#     context["allowed_to_post"] = user.feed.subclassobject.allowed_to_post(context['request'].user)
+#     context["entries"] = user.feed.entries.order_by("-obj_feed_entry__posted_at").all()[:5]
+#     return context
+
+# @register.inclusion_tag("djangoobjfeed/objfeed.html", takes_context=True)
+# def objfeed_for_tribe(context, tribe):
+#     context["feed"] = tribe.feed
+#     context["allowed_to_post"] = tribe.feed.subclassobject.allowed_to_post(context['request'].user)
+#     context["entries"] = tribe.feed.entries.order_by("-obj_feed_entry__posted_at").all()[:5]
+#     return context
+
+
 
 @register.inclusion_tag("djangoobjfeed/objfeed.html", takes_context=True)
-def objfeed_for_tribe(context, tribe):
-    context["feed"] = tribe.feed
-    context["allowed_to_post"] = tribe.feed.subclassobject.allowed_to_post(context['request'].user)
-    context["entries"] = tribe.feed.entries.order_by("-obj_feed_entry__posted_at").all()[:5]
-    return context
-
-
-
-@register.inclusion_tag("djangoobjfeed/objfeed.html", takes_context=True)
-def objfeed(context, feed):
+def objfeed(context, feed, only_own = False):
+    feed = feed.subclassobject
+    if only_own:
+        entries = feed.own_entries
+    else:
+        entries = feed.entries
     context["feed"] = feed
-    context["allowed_to_post"] = feed.subclassobject.allowed_to_post(context['request'].user)
-    context["entries"] = feed.entries.order_by("-obj_feed_entry__posted_at").all()[:5]
+    context["allowed_to_post"] = feed.allowed_to_post(context['request'].user)
+    context["entries"] = entries.order_by("-obj_feed_entry__posted_at").all()[:5]
     return context
 
 @register.inclusion_tag("djangoobjfeed/comments.html", takes_context=True)
@@ -33,10 +38,15 @@ def objfeed_comments(context, obj_feed_entry):
 
 
 @register.inclusion_tag("djangoobjfeed/objfeed.html", takes_context=True)
-def objfeed_for_obj(context, obj):
-    context["feed"] = obj.feed
-    context["allowed_to_post"] = obj.feed.subclassobject.allowed_to_post(context['request'].user)
-    context["entries"] = obj.feed.entries.order_by("-obj_feed_entry__posted_at").all()[:5]
+def objfeed_for_obj(context, obj, only_own = False):
+    feed = obj.feed.subclassobject
+    if only_own:
+        entries = feed.own_entries
+    else:
+        entries = feed.entries
+    context["feed"] = feed
+    context["allowed_to_post"] = feed.allowed_to_post(context['request'].user)
+    context["entries"] = entries.order_by("-obj_feed_entry__posted_at").all()[:5]
     return context
 
 @register.inclusion_tag("djangoobjfeed/comments.html", takes_context=True)
