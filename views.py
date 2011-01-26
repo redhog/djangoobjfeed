@@ -29,7 +29,7 @@ def post_comment(request, *arg, **kw):
 
     if 'comment_on_feed_entry' in request.POST:
         comment_on_feed_entry = djangoobjfeed.models.ObjFeedEntry.objects.get(id=int(request.POST['comment_on_feed_entry']))
-        if not comment_on_feed_entry.allowed_to_post_comment(request.user):
+        if not comment_on_feed_entry.subclassobject.allowed_to_post_comment(request.user):
             raise Exception('Permission denied')
 
     if 'comment_on_comment' in request.POST:
