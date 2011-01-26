@@ -103,10 +103,13 @@ class FeedEntry(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, fcd
 
     # Very very spartan so it can't break into infinite recursion hell... I.e. DONT't call templates here!!!
     def __repr__(self):
-        return "%s: %s posted to %s" % (type(self), self.obj_feed_entry.author, self.feed)
+        try:
+            return "%s: %s posted to %s" % (type(self), self.obj_feed_entry.author, self.feed)
+        except:
+            return "FeedEntry"
 
     def __unicode__(self):
-        return "%s posted to %s" % (self.render('txt'), self.feed)
+        return u"FeedEntry"
 
 class CommentFeedEntryManager(django.db.models.Manager):
     def get_query_set(self):
