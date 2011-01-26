@@ -3,13 +3,13 @@
 
 {% block feed_entry_footer %}
   {{ block.super }}
-  <a href="{% url djangoobjfeed.views.delete_comment %}?comment={{ feed_entry.obj_feed_entry.id }}">Delete</a>
+  <a href="{% url djangoobjfeed.views.delete_comment %}?comment={{ feed_entry.obj_feed_entry.id }}">Slett</a>
 {% endblock %}
 
 {% block feed_entry_body %}
   {{feed_entry.obj_feed_entry.content}}
 
-  <span class="autohide-button" id="update_comment_{{feed_entry.obj_feed_entry.id}}-button">{% trans "Update" %}</span>
+  <span class="autohide-button" id="update_comment_{{feed_entry.obj_feed_entry.id}}-button">Oppdater</span>
   <form action="{% url djangoobjfeed.views.update_comment %}" method="POST" class="autohide-body" id="update_comment_{{feed_entry.obj_feed_entry.id}}-body">
     {% csrf_token %}
     <input type="hidden" name="comment" value="{{feed_entry.obj_feed_entry.id}}">
