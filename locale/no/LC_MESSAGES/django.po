@@ -7,13 +7,23 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-12-22 16:04-0500\n"
-"PO-Revision-Date: 2010-12-22 22:06+0100\n"
+"POT-Creation-Date: 2011-01-25 12:22-0500\n"
+"PO-Revision-Date: 2011-01-25 17:24+0100\n"
 "Last-Translator: Reidar Øksnevad <reidar.oksnevad@freecode.no>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+
+#: templates/djangoobjfeed/comments.html:22
+#: templates/djangoobjfeed/objfeed.html:20
+#: templates/djangoobjfeed/render_comment_entry.html:17
+msgid "Save comment"
+msgstr "Lagre kommentar"
+
+#: templates/djangoobjfeed/render_comment_entry.html:12
+msgid "Update"
+msgstr "Oppdater"
 
 #: templates/djangoobjfeed/render_feed_entry.html:26
 msgid "Posted"
@@ -23,3 +33,6 @@ msgstr "For"
 msgid "ago"
 msgstr "siden"
 
+#: templates/djangoobjfeed/render_feed_entry.html:31
+msgid "Comment"
+msgstr "Kommenter"
