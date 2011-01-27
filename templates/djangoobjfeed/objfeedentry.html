@@ -1,0 +1,11 @@
+{% load i18n %}
+{% load account_tags %}
+{% load pagination_tags %}
+{% load humanize %}
+{% load objfeed_tags %}
+{% load widgettag_tags %}
+{% load datatypes %}
+
+{% with STATIC_URL|aadd:"fcdjangoutils/js/expand.js" as url %}{% widget_addjsfile url %}{% endwith %}
+
+{% render entry "html" %}
