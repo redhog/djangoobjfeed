@@ -1,4 +1,5 @@
 import django.template
+from fcdjangoutils.timer import Timer 
 
 register = django.template.Library()
 

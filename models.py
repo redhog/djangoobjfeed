@@ -106,8 +106,10 @@ class FeedEntry(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, fcd
         try:
             context.push()
             context['feed_entry'] = self
-            return django.template.loader.get_template(self.obj_feed_entry.template % {'format':format}
-                                                       ).render(context)
+            from fcdjangoutils.timer import Timer
+            with Timer('entry'):
+                return django.template.loader.get_template(self.obj_feed_entry.template % {'format':format}
+                                                           ).render(context)
         finally:
             context.pop()
 
@@ -180,6 +182,10 @@ class ObjFeedEntry(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, 
         raise NotImplementedError
 
     @classmethod
+    def clear_feeds(cls, instance, author):
+        pass
+
+    @classmethod
     def copy_feeds(cls, instance, author):
         for method in dir(cls):
             if method.endswith("_feeds_for_obj"):
@@ -225,6 +231,7 @@ class ObjFeedEntry(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, 
                                  obj = instance)
         obj_feed_entry.save()
 
+        cls.clear_feeds(instance, author)
         done = set(feed_entry.feed.id for feed_entry in obj_feed_entry.feed_entry.all())
         for matches_subscription, feed in cls.copy_feeds(instance, author):
             if feed.id in done:
