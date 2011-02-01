@@ -179,6 +179,10 @@ class ObjFeedEntry(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, 
         raise NotImplementedError
 
     @classmethod
+    def clear_feeds(cls, instance, author):
+        pass
+
+    @classmethod
     def copy_feeds(cls, instance, author):
         for method in dir(cls):
             if method.endswith("_feeds_for_obj"):
@@ -224,6 +228,7 @@ class ObjFeedEntry(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, 
                                  obj = instance)
         obj_feed_entry.save()
 
+        cls.clear_feeds(instance, author)
         done = set(feed_entry.feed.id for feed_entry in obj_feed_entry.feed_entry.all())
         for matches_subscription, feed in cls.copy_feeds(instance, author):
             if feed.id in done:
