@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import django.contrib.admin
 import djangoobjfeed.models
 

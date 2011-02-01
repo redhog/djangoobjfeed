@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import django.http
 import django.shortcuts
 import djangoobjfeed.models
