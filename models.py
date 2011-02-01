@@ -105,8 +105,10 @@ class FeedEntry(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, fcd
         try:
             context.push()
             context['feed_entry'] = self
-            return django.template.loader.get_template(self.obj_feed_entry.template % {'format':format}
-                                                       ).render(context)
+            from fcdjangoutils.timer import Timer
+            with Timer('entry'):
+                return django.template.loader.get_template(self.obj_feed_entry.template % {'format':format}
+                                                           ).render(context)
         finally:
             context.pop()
 
