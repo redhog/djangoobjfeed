@@ -92,3 +92,7 @@ def get_objfeed(request, objfeed_id):
 def get_objfeed_for_user(request, username):
     usr = django.contrib.auth.models.User.objects.get(username=username)
     return get_objfeed(request, usr.feed.id)
+
+def get_objfeed_for_name(request, name):
+    feed = djangoobjfeed.models.NamedFeed.objects.get(name=name)
+    return get_objfeed(request, feed.id)
