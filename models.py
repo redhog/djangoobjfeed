@@ -18,7 +18,7 @@ class ObjFeed(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, fcdja
     class __metaclass__(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel.__metaclass__):
         def __init__(cls, *arg, **kw):
             fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel.__metaclass__.__init__(cls, *arg, **kw)
-            if cls.__name__ != 'ObjFeed':
+            if cls.__name__ != 'ObjFeed' and cls.owner is not None:
                 django.db.models.signals.post_save.connect(cls.obj_post_save, sender=cls.owner.field.rel.to)
 
     @classmethod
@@ -35,6 +35,7 @@ class ObjFeed(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, fcdja
     @property
     def owner(self): raise fcdjangoutils.modelhelpers.MustBeOverriddenError
 
+    @fcdjangoutils.modelhelpers.subclassproxy
     def __unicode__(self):
         return "Feed for %s" % (self.owner,)
 
@@ -48,6 +49,22 @@ class ObjFeed(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, fcdja
 
     def allowed_to_post(self, user):
         return False
+
+class NamedFeed(ObjFeed):
+    owner = None
+    name = django.db.models.CharField(max_length=255)
+    allow_public_postings = django.db.models.BooleanField()
+
+    def __unicode__(self):
+        return "Feed called %s" % (self.name,)
+
+    def allowed_to_post(self, user):
+        return self.allow_public_postings
+
+    @property
+    def own_entries(self):
+        return self.entries
+
 
 class UserFeed(ObjFeed):
     owner = django.db.models.OneToOneField(django.contrib.auth.models.User, primary_key=True, related_name="feed")
