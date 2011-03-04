@@ -11,6 +11,7 @@ import django.template
 import django.template.loader
 import datetime
 import friends.models
+from django.db.models import Q
 
 # Feeds
 
@@ -76,7 +77,7 @@ class UserFeed(ObjFeed):
 
     @property
     def own_entries(self):
-        return self.entries.filter(obj_feed_entry__author__id = self.owner.id)
+        return self.entries.filter(Q(obj_feed_entry__author__id = self.owner.id) | Q(obj_feed_entry__messagefeedentry__obj__feed__id = self.id))
 
 
 class TribeFeed(ObjFeed):
