@@ -73,7 +73,10 @@ class UserFeed(ObjFeed):
     def allowed_to_post(self, user):
         if self.owner.id == user.id:
             return True
-        return user.id in set(u.id for u in friends.models.friend_set_for(self.owner))
+        try:
+            return self.owner.subclassobject.check_permission(user, 'wall_posts')
+        except:
+            return user.id in set(u.id for u in friends.models.friend_set_for(self.owner))
 
     @property
     def own_entries(self):
