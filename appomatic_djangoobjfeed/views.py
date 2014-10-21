@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import django.http
 import django.shortcuts
-import djangoobjfeed.models
 import django.contrib.auth.models
 from fcdjangoutils.timer import Timer 
+import appomatic_djangoobjfeed.models
 
 def get_return_address(request):
     if '_next' in request.POST:
@@ -15,9 +15,9 @@ def get_return_address(request):
     return '/'
 
 def post(request, *arg, **kw):    
-    feed = djangoobjfeed.models.ObjFeed.objects.get(id=int(request.POST['feed']))
+    feed = appomatic_djangoobjfeed.models.ObjFeed.objects.get(id=int(request.POST['feed']))
 
-    djangoobjfeed.models.Message(
+    appomatic_djangoobjfeed.models.Message(
         feed = feed,
         author = request.user,
         content = request.POST['content']
@@ -30,15 +30,15 @@ def post_comment(request, *arg, **kw):
     comment_on_comment = None
 
     if 'comment_on_feed_entry' in request.POST:
-        comment_on_feed_entry = djangoobjfeed.models.ObjFeedEntry.objects.get(id=int(request.POST['comment_on_feed_entry']))
+        comment_on_feed_entry = appomatic_djangoobjfeed.models.ObjFeedEntry.objects.get(id=int(request.POST['comment_on_feed_entry']))
         if not comment_on_feed_entry.subclassobject.allowed_to_post_comment(request.user):
             raise Exception('Permission denied')
 
     if 'comment_on_comment' in request.POST:
         raise Exception("Comments on comments disabled because permission checking isn't implemented")
-        comment_on_comment = djangoobjfeed.models.CommentFeedEntry.objects.get(id=int(request.POST['comment_on_comment']))
+        comment_on_comment = appomatic_djangoobjfeed.models.CommentFeedEntry.objects.get(id=int(request.POST['comment_on_comment']))
 
-    djangoobjfeed.models.CommentFeedEntry(
+    appomatic_djangoobjfeed.models.CommentFeedEntry(
         author = request.user,
         comment_on_feed_entry = comment_on_feed_entry,
         comment_on_comment = comment_on_comment,
@@ -48,7 +48,7 @@ def post_comment(request, *arg, **kw):
     return django.shortcuts.redirect(get_return_address(request))
 
 def update_comment(request, *arg, **kw):    
-    comment = djangoobjfeed.models.CommentFeedEntry.objects.get(id=int(request.POST['comment']))
+    comment = appomatic_djangoobjfeed.models.CommentFeedEntry.objects.get(id=int(request.POST['comment']))
 
     assert comment.author.id == request.user.id
 
@@ -58,7 +58,7 @@ def update_comment(request, *arg, **kw):
     return django.shortcuts.redirect(get_return_address(request))
 
 def delete_comment(request, *arg, **kw):    
-    comment = djangoobjfeed.models.CommentFeedEntry.objects.get(id=int(request.GET['comment']))
+    comment = appomatic_djangoobjfeed.models.CommentFeedEntry.objects.get(id=int(request.GET['comment']))
 
     assert comment.author.id == request.user.id
 
@@ -68,7 +68,7 @@ def delete_comment(request, *arg, **kw):
 
 def get_feed_entry(request, feed_entry_id):
     data = {}
-    data['entry'] = djangoobjfeed.models.FeedEntry.objects.get(id=int(feed_entry_id))
+    data['entry'] = appomatic_djangoobjfeed.models.FeedEntry.objects.get(id=int(feed_entry_id))
     return django.shortcuts.render_to_response(
         'djangoobjfeed/objfeedentry.html', 
         data,
@@ -76,7 +76,7 @@ def get_feed_entry(request, feed_entry_id):
 
 def get_objfeed(request, objfeed_id):
     data = {}
-    feed = djangoobjfeed.models.ObjFeed.objects.get(id=objfeed_id)
+    feed = appomatic_djangoobjfeed.models.ObjFeed.objects.get(id=objfeed_id)
     data["feed"] = feed
     data["allowed_to_post"] = feed.subclassobject.allowed_to_post(request.user)
     data["entries"] = feed.entries.order_by("-obj_feed_entry__posted_at").all()[:10]
@@ -94,5 +94,5 @@ def get_objfeed_for_user(request, username):
     return get_objfeed(request, usr.feed.id)
 
 def get_objfeed_for_name(request, name):
-    feed = djangoobjfeed.models.NamedFeed.objects.get(name=name)
+    feed = appomatic_djangoobjfeed.models.NamedFeed.objects.get(name=name)
     return get_objfeed(request, feed.id)

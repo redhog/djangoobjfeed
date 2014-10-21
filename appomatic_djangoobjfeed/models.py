@@ -1,17 +1,28 @@
 # -*- coding: utf-8 -*-
+import datetime
 import django.db.models
 import django.contrib.auth.models
-import pinax.apps.tribes.models
-import microblogging.models
-import pinax.apps.blog.models
-import pinax.apps.photos.models
-import fcdjangoutils.modelhelpers
-import fcdjangoutils.signalautoconnectmodel
 import django.template
 import django.template.loader
-import datetime
-import friends.models
 from django.db.models import Q
+import fcdjangoutils.modelhelpers
+import fcdjangoutils.signalautoconnectmodel
+try:
+    import pinax.apps.tribes.models as tribemodels
+    import pinax.apps.blog.models as blogmodels
+    import pinax.apps.photos.models as photosmodels
+except:
+    tribemodels = None
+    blogmodels = None
+    photosmodels = None
+try:
+    import microblogging.models as microbloggingmodels
+except:
+    microbloggingmodels = None
+try:
+    import friends.models as friendsmodels
+except:
+    friendsmodels = None
 
 # Feeds
 
@@ -83,12 +94,13 @@ class UserFeed(ObjFeed):
         return self.entries.filter(Q(obj_feed_entry__author__id = self.owner.id) | Q(obj_feed_entry__messagefeedentry__obj__feed__id = self.id))
 
 
-class TribeFeed(ObjFeed):
-    owner = django.db.models.OneToOneField(pinax.apps.tribes.models.Tribe, primary_key=True, related_name="feed")
+if tribemodels:
+    class TribeFeed(ObjFeed):
+        owner = django.db.models.OneToOneField(tribemodels.Tribe, primary_key=True, related_name="feed")
 
-    def allowed_to_post(self, user):
-        # Really, check for membership here
-        return False
+        def allowed_to_post(self, user):
+            # Really, check for membership here
+            return False
 
 # Subscriptions
 
@@ -316,30 +328,33 @@ class MessageFeedEntry(ObjFeedEntry):
     def feed_feeds_for_obj(cls, instance, author):
         yield lambda feed_entry: True, instance.feed.superclassobject
 
-class TweetFeedEntry(ObjFeedEntry):
-    obj = django.db.models.ForeignKey(microblogging.models.Tweet, related_name='feed_entry')
+if microbloggingmodels:
+    class TweetFeedEntry(ObjFeedEntry):
+        obj = django.db.models.ForeignKey(microbloggingmodels.Tweet, related_name='feed_entry')
 
-    @classmethod
-    def get_author_from_obj(cls, obj):
-        return obj.sender
+        @classmethod
+        def get_author_from_obj(cls, obj):
+            return obj.sender
 
-    template = "djangoobjfeed/render_tweet_entry.%(format)s"
+        template = "djangoobjfeed/render_tweet_entry.%(format)s"
 
-class BlogFeedEntry(ObjFeedEntry):
-    obj = django.db.models.ForeignKey(pinax.apps.blog.models.Post, related_name='feed_entry')
+if blogmodels:
+    class BlogFeedEntry(ObjFeedEntry):
+        obj = django.db.models.ForeignKey(blogmodels.Post, related_name='feed_entry')
 
-    @classmethod
-    def get_author_from_obj(cls, obj):
-        return obj.author
+        @classmethod
+        def get_author_from_obj(cls, obj):
+            return obj.author
 
-    template = "djangoobjfeed/render_blog_entry.%(format)s"
+        template = "djangoobjfeed/render_blog_entry.%(format)s"
 
-class ImageFeedEntry(ObjFeedEntry):
-    obj = django.db.models.ForeignKey(pinax.apps.photos.models.Image, related_name='feed_entry')
+if photosmodels:
+    class ImageFeedEntry(ObjFeedEntry):
+        obj = django.db.models.ForeignKey(photosmodels.Image, related_name='feed_entry')
 
-    @classmethod
-    def get_author_from_obj(cls, obj):
-        return obj.member
+        @classmethod
+        def get_author_from_obj(cls, obj):
+            return obj.member
 
-    template = "djangoobjfeed/render_photo_entry.%(format)s"
+        template = "djangoobjfeed/render_photo_entry.%(format)s"
 

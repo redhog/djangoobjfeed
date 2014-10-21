@@ -1,7 +1,4 @@
 {% load i18n %}
-{% load account_tags %}
-{% load pagination_tags %}
-{% load humanize %}
 {% load objfeed_tags %}
 {% load avatar_tags %}
 {% load widgettag_tags %}
@@ -10,7 +7,7 @@
 {% block comments %}
   {% with STATIC_URL|aadd:"fcdjangoutils/js/expand.js" as url %}{% widget_addjsfile url %}{% endwith %}
 
-  <form action="{% url djangoobjfeed.views.post_comment %}" method="POST" class="autohide-body" id="comment_for_{% if obj_feed_entry.is_comment %}comment_{% endif %}{{obj_feed_entry.id}}-body">
+  <form action="{% url 'appomatic_djangoobjfeed.views.post_comment' %}" method="POST" class="autohide-body" id="comment_for_{% if obj_feed_entry.is_comment %}comment_{% endif %}{{obj_feed_entry.id}}-body">
     <fieldset>
       {% csrf_token %}
       {% if obj_feed_entry.is_comment %}
