@@ -6,6 +6,7 @@
 
 {% block comments %}
   {% with STATIC_URL|aadd:"fcdjangoutils/js/expand.js" as url %}{% widget_addjsfile url %}{% endwith %}
+  {% with STATIC_URL|aadd:"fcdjangoutils/css/expand.css" as url %}{% widget_addcssfile url %}{% endwith %}
 
   <form action="{% url 'appomatic_djangoobjfeed.views.post_comment' %}" method="POST" class="autohide-body" id="comment_for_{% if obj_feed_entry.is_comment %}comment_{% endif %}{{obj_feed_entry.id}}-body">
     <fieldset>

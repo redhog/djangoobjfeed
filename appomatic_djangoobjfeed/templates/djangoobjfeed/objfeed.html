@@ -4,6 +4,7 @@
 {% load datatypes %}
 
 {% with STATIC_URL|aadd:"fcdjangoutils/js/expand.js" as url %}{% widget_addjsfile url %}{% endwith %}
+{% with STATIC_URL|aadd:"fcdjangoutils/css/expand.css" as url %}{% widget_addcssfile url %}{% endwith %}
 
 <div class="feed" id="feed_{{feed.id}}">
   <div class="feed_url" style="display: none;">{% url 'appomatic_djangoobjfeed.views.get_objfeed' objfeed_id=feed.id %}</div>
