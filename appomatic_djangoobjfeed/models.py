@@ -53,7 +53,11 @@ class ObjFeed(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, fcdja
 
     @property
     def entries(self):
-        return self.all_entries.filter(obj_feed_entry__posted_at__lte = datetime.datetime.now())
+        return self.all_entries.filter(obj_feed_entry__posted_at__lte = datetime.datetime.now()).order_by('obj_feed_entry__posted_at')
+
+    @property
+    def new_entries(self):
+        return self.entries.filter(seen=False)
 
     @property
     def own_entries(self):
@@ -125,15 +129,27 @@ class FeedEntryManager(django.db.models.Manager):
         return django.db.models.Manager.get_query_set(self).order_by("obj_feed_entry__posted_at")
 
 class FeedEntry(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, fcdjangoutils.modelhelpers.SubclasModelMixin):
+    class Meta:
+        ordering = ('obj_feed_entry__posted_at',)
+
     objects = FeedEntryManager()
     feed = django.db.models.ForeignKey("ObjFeed", related_name="all_entries")
     obj_feed_entry = django.db.models.ForeignKey("ObjFeedEntry", related_name="feed_entry")
+    seen = django.db.models.BooleanField(default=False)
+
+    def see(self):
+        if not self.seen:
+            self.seen = True
+            self.save()
+        return ""
 
     @property
     def display_name(self):
         return self.obj_feed_entry.subclassobject.display_name
 
     def render(self, format = 'html', context = None):
+        self.see()
+
         if context is None:
             context = django.template.Context({})
         try:
