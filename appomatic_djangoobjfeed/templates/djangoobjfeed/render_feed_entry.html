@@ -9,6 +9,11 @@
       {% block feed_entry_header %}
         <h1><a href='{{feed_entry.get_absolute_url}}'>{{feed_entry.display_name}}</a></h1>
         <p class="toggle_profile"><a href='{{feed_entry.obj_feed_entry.author.get_absolute_url}}'>{{feed_entry.obj_feed_entry.author}}</a></p>
+
+        {% if feed_entry.obj_feed_entry.obj.feed and feed_entry.obj_feed_entry.obj.feed.id != feed_entry.feed.id %}
+          <p><a href="{{feed_entry.obj_feed_entry.obj.feed.owner.get_absolute_url}}">{{feed_entry.obj_feed_entry.obj.feed.owner}}</a></p>
+        {% endif %}
+
       {% endblock %}
       
       <div class="feed_entry_body">
