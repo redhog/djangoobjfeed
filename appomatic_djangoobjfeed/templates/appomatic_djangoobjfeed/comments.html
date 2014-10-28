@@ -24,7 +24,7 @@
   <div class="comments">
     {% block feed_entry_comments %}
     {% for sub_entry in obj_feed_entry.comments_in.all %}
-      {% render sub_entry "html" %}
+      {% render obj=sub_entry style="inline.html" %}
     {% endfor %}
     {% endblock %}
   </div>

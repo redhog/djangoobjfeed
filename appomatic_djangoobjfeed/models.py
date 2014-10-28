@@ -7,6 +7,7 @@ import django.template.loader
 from django.db.models import Q
 import fcdjangoutils.modelhelpers
 import fcdjangoutils.signalautoconnectmodel
+import appomatic_renderable.models
 try:
     import pinax.apps.tribes.models as tribemodels
     import pinax.apps.blog.models as blogmodels
@@ -26,7 +27,7 @@ except:
 
 # Feeds
 
-class ObjFeed(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, fcdjangoutils.modelhelpers.SubclasModelMixin):
+class ObjFeed(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, appomatic_renderable.models.Renderable):
     class __metaclass__(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel.__metaclass__):
         def __init__(cls, *arg, **kw):
             fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel.__metaclass__.__init__(cls, *arg, **kw)
@@ -128,7 +129,7 @@ class FeedEntryManager(django.db.models.Manager):
     def get_query_set(self):
         return django.db.models.Manager.get_query_set(self).order_by("obj_feed_entry__posted_at")
 
-class FeedEntry(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, fcdjangoutils.modelhelpers.SubclasModelMixin):
+class FeedEntry(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, appomatic_renderable.models.Renderable):
     class Meta:
         ordering = ('obj_feed_entry__posted_at',)
 
@@ -147,21 +148,6 @@ class FeedEntry(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, fcd
     def display_name(self):
         return self.obj_feed_entry.subclassobject.display_name
 
-    def render(self, format = 'html', context = None):
-        self.see()
-
-        if context is None:
-            context = django.template.Context({})
-        try:
-            context.push()
-            context['feed_entry'] = self
-            from fcdjangoutils.timer import Timer
-            with Timer('entry'):
-                return django.template.loader.get_template(self.obj_feed_entry.template % {'format':format}
-                                                           ).render(context)
-        finally:
-            context.pop()
-
     # Very very spartan so it can't break into infinite recursion hell... I.e. DONT't call templates here!!!
     def __repr__(self):
         try:
@@ -176,7 +162,7 @@ class CommentFeedEntryManager(django.db.models.Manager):
     def get_query_set(self):
         return django.db.models.Manager.get_query_set(self).order_by("posted_at")
 
-class CommentFeedEntry(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, fcdjangoutils.modelhelpers.SubclasModelMixin):
+class CommentFeedEntry(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, appomatic_renderable.models.Renderable):
     objects = CommentFeedEntryManager()
 
     posted_at = django.db.models.DateTimeField(auto_now=True)
@@ -186,29 +172,15 @@ class CommentFeedEntry(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectMod
     comment_on_comment = django.db.models.ForeignKey("CommentFeedEntry", related_name="comments_in", null=True, blank=True)
     content = django.db.models.TextField()
 
-    template = "djangoobjfeed/render_comment_entry.%(format)s"
-
     is_comment = True
 
     @property
     def display_name(self):
         return type(self).__name__[:-len('FeedEntry')]        
 
-    def render(self, format = 'html', context = None):
-        class Dummy(object):
-            pass
-        context.push()
-        try:
-            context['feed_entry'] = Dummy()
-            context['feed_entry'].obj_feed_entry = self
-            return django.template.loader.get_template(self.template % {'format':format}
-                                                       ).render(context)
-        finally:
-            context.pop()
-
 # Feed entry adaptors for objects
 
-class ObjFeedEntry(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, fcdjangoutils.modelhelpers.SubclasModelMixin):
+class ObjFeedEntry(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, appomatic_renderable.models.Renderable):
     class __metaclass__(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel.__metaclass__):
         def __init__(cls, *arg, **kw):
             fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel.__metaclass__.__init__(cls, *arg, **kw)
@@ -312,11 +284,6 @@ class ObjFeedEntry(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, 
     def display_name(self):
         return type(self).__name__[:-len('FeedEntry')]
 
-    @fcdjangoutils.modelhelpers.subclassproxy
-    @property
-    def template(self):
-        return "djangoobjfeed/render_feed_entry.%(format)s"
-
     def allowed_to_post_comment(self, user):
         author = self.author
         author = getattr(author, 'subclassobject', author)
@@ -338,8 +305,6 @@ class MessageFeedEntry(ObjFeedEntry):
     def get_author_from_obj(cls, obj):
         return obj.author
 
-    template = "djangoobjfeed/render_message_entry.%(format)s"
-
     @classmethod
     def feed_feeds_for_obj(cls, instance, author):
         yield lambda feed_entry: True, instance.feed.superclassobject
@@ -352,8 +317,6 @@ if microbloggingmodels:
         def get_author_from_obj(cls, obj):
             return obj.sender
 
-        template = "djangoobjfeed/render_tweet_entry.%(format)s"
-
 if blogmodels:
     class BlogFeedEntry(ObjFeedEntry):
         obj = django.db.models.ForeignKey(blogmodels.Post, related_name='feed_entry')
@@ -362,8 +325,6 @@ if blogmodels:
         def get_author_from_obj(cls, obj):
             return obj.author
 
-        template = "djangoobjfeed/render_blog_entry.%(format)s"
-
 if photosmodels:
     class ImageFeedEntry(ObjFeedEntry):
         obj = django.db.models.ForeignKey(photosmodels.Image, related_name='feed_entry')
@@ -371,6 +332,4 @@ if photosmodels:
         @classmethod
         def get_author_from_obj(cls, obj):
             return obj.member
-
-        template = "djangoobjfeed/render_photo_entry.%(format)s"
 

@@ -21,6 +21,6 @@
   {% endif %}
 
   {% for entry in entries %}
-    {% render entry "html" %}
+    {{entry.render_as.inline__html|safe}}
   {% endfor %}
 </div>
