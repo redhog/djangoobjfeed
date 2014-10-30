@@ -3,58 +3,15 @@ from fcdjangoutils.timer import Timer
 
 register = django.template.Library()
 
-# @register.inclusion_tag("djangoobjfeed/objfeed.html", takes_context=True)
-# def objfeed_for_user(context, user, is_me):
-#     context["feed"] = user.feed
-#     context["allowed_to_post"] = user.feed.subclassobject.allowed_to_post(context['request'].user)
-#     context["entries"] = user.feed.entries.order_by("-obj_feed_entry__posted_at").all()[:10]
-#     return context
-
-# @register.inclusion_tag("djangoobjfeed/objfeed.html", takes_context=True)
-# def objfeed_for_tribe(context, tribe):
-#     context["feed"] = tribe.feed
-#     context["allowed_to_post"] = tribe.feed.subclassobject.allowed_to_post(context['request'].user)
-#     context["entries"] = tribe.feed.entries.order_by("-obj_feed_entry__posted_at").all()[:10]
-#     return context
-
-
-
-@register.inclusion_tag("appomatic_djangoobjfeed/objfeed.html", takes_context=True)
-def objfeed(context, feed, only_own = False):
+@register.tag
+def objfeed(feed, only_own = False):
     feed = feed.subclassobject
-    if only_own:
-        entries = feed.own_entries
-    else:
-        entries = feed.entries
-    context["feed"] = feed
-    context["allowed_to_post"] = feed.allowed_to_post(context['request'].user)
-    context["entries"] = entries.order_by("-obj_feed_entry__posted_at").all()[:10]
-    return context
+    return feed.render(style="inline.html", context_arg={"only_own": only_own});
 
-@register.inclusion_tag("appomatic_djangoobjfeed/comments.html", takes_context=True)
-def objfeed_comments(context, obj_feed_entry):
-    context["obj_feed_entry"] = obj_feed_entry
-    return context
-
-
-
-@register.inclusion_tag("appomatic_djangoobjfeed/objfeed.html", takes_context=True)
-def objfeed_for_obj(context, obj, only_own = False):
+@register.tag
+def objfeed_for_obj(obj, only_own = False):
     feed = obj.feed.subclassobject
-    if only_own:
-        entries = feed.own_entries
-    else:
-        entries = feed.entries
-    context["feed"] = feed
-    context["allowed_to_post"] = feed.allowed_to_post(context['request'].user)
-    context["entries"] = entries.order_by("-obj_feed_entry__posted_at").all()[:10]
-    return context
-
-@register.inclusion_tag("appomatic_djangoobjfeed/comments.html", takes_context=True)
-def objfeed_comments_for_obj(context, obj):
-    context["obj_feed_entry"] = obj.feed_entry.all()[0]
-    return context
-
+    return feed.render(style="inline.html", context_arg={"only_own": only_own});
 
 class RenderNode(django.template.Node):
     def __init__(self, **kw):

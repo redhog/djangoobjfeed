@@ -2,25 +2,35 @@
 {% load objfeed_tags %}
 {% load widgettag_tags %}
 {% load datatypes %}
+{% load endless %}
 
 {% with STATIC_URL|aadd:"fcdjangoutils/js/expand.js" as url %}{% widget_addjsfile url %}{% endwith %}
 {% with STATIC_URL|aadd:"fcdjangoutils/css/expand.css" as url %}{% widget_addcssfile url %}{% endwith %}
 
-<div class="feed" id="feed_{{feed.id}}">
-  <div class="feed_url" style="display: none;">{% url 'appomatic_djangoobjfeed.views.get_objfeed' objfeed_id=feed.id %}</div>
+<div class="feed" id="feed_{{obj.id}}">
+  <div class="feed_url" style="display: none;">{% url 'appomatic_djangoobjfeed.views.get_objfeed' objfeed_id=obj.id %}</div>
 
-  {% if allowed_to_post %}
-    <form action="{% url 'appomatic_djangoobjfeed.views.post' %}" method="POST" id="message_for_{{feed.id}}">
+  {% if obj.allowed_to_post %}
+    <form action="{% url 'appomatic_djangoobjfeed.views.post' %}" method="POST" id="message_for_{{obj.id}}">
       <fieldset>
 	{% csrf_token %}
-	<input type="hidden" name="feed" value="{{feed.id}}">
+	<input type="hidden" name="feed" value="{{obj.id}}">
 	<textarea name="content" cols="0" rows="0" class="textfield"></textarea>
 	<button type="submit">{% trans "Save comment" %}</button>
       </fieldset>
     </form>
   {% endif %}
 
+  {% if only_own %}
+    {% paginate obj.own_entries using 'feed' as entries %}
+  {% else %}
+    {% paginate obj.entries using 'feed' as entries %}
+  {% endif %}
+
   {% for entry in entries %}
     {{entry.render_as.inline__html|safe}}
   {% endfor %}
+
+  {% show_pages %}
+
 </div>

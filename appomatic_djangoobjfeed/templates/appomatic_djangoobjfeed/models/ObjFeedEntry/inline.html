@@ -35,7 +35,7 @@
         <div class="clearfloat"></div>                              
       </div>
       
-      {% objfeed_comments feed_entry.obj_feed_entry %}
+      {{feed_entry.obj_feed_entry.render_as.comments__html|safe}}
     
     </div>
     <div class="clearfloat"></div>                              

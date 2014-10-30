@@ -67,12 +67,8 @@ def delete_comment(request, *arg, **kw):
     return django.shortcuts.redirect(get_return_address(request))
 
 def get_feed_entry(request, feed_entry_id):
-    data = {}
-    data['entry'] = appomatic_djangoobjfeed.models.FeedEntry.objects.get(id=int(feed_entry_id))
-    return django.shortcuts.render_to_response(
-        'djangoobjfeed/objfeedentry.html', 
-        data,
-        context_instance=django.template.RequestContext(request))
+    entry = appomatic_djangoobjfeed.models.FeedEntry.objects.get(id=int(feed_entry_id))
+    return entry.render(style="page.html", as_response=True)
 
 def get_objfeed(request, objfeed_id):
     data = {}

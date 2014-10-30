@@ -8,6 +8,7 @@ from django.db.models import Q
 import fcdjangoutils.modelhelpers
 import fcdjangoutils.signalautoconnectmodel
 import appomatic_renderable.models
+import fcdjangoutils.middleware
 try:
     import pinax.apps.tribes.models as tribemodels
     import pinax.apps.blog.models as blogmodels
@@ -54,7 +55,7 @@ class ObjFeed(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, appom
 
     @property
     def entries(self):
-        return self.all_entries.filter(obj_feed_entry__posted_at__lte = datetime.datetime.now()).order_by('obj_feed_entry__posted_at')
+        return self.all_entries.filter(obj_feed_entry__posted_at__lte = datetime.datetime.now()).order_by('-obj_feed_entry__posted_at')
 
     @property
     def new_entries(self):
@@ -64,7 +65,7 @@ class ObjFeed(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, appom
     def own_entries(self):
         return self.entries
 
-    def allowed_to_post(self, user):
+    def allowed_to_post(self, user=None):
         return False
 
 class NamedFeed(ObjFeed):
@@ -75,7 +76,7 @@ class NamedFeed(ObjFeed):
     def __unicode__(self):
         return "Feed called %s" % (self.name,)
 
-    def allowed_to_post(self, user):
+    def allowed_to_post(self, user=None):
         return self.allow_public_postings
 
     @property
@@ -86,7 +87,8 @@ class NamedFeed(ObjFeed):
 class UserFeed(ObjFeed):
     owner = django.db.models.OneToOneField(django.contrib.auth.models.User, primary_key=True, related_name="feed")
 
-    def allowed_to_post(self, user):
+    def allowed_to_post(self, user=None):
+        if user is None: user = fcdjangoutils.middleware.get_request().user
         if self.owner.id == user.id:
             return True
         try:
