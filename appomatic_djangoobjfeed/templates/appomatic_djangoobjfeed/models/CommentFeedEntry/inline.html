@@ -2,17 +2,21 @@
 {% load i18n %}
 
 {% block feed_entry_footer %}
-  <a href="{% url 'appomatic_djangoobjfeed.views.delete_comment' %}?comment={{ obj.id }}">Slett</a>
+  <form method="POST" id="{{obj.fieldname}}delete">
+    {% csrf_token %}
+    <input type="hidden" name="{{obj.fieldname}}method" value="delete">
+    <a href="javascript:document.forms['{{obj.fieldname}}delete'].submit();">{% trans "Delete" %}</a>
+  </form>
 {% endblock %}
 
 {% block feed_entry_body %}
   {{obj.content}}
 
-  <span class="autohide-button" id="update_comment_{{obj.id}}-button">Oppdater</span>
-  <form action="{% url 'appomatic_djangoobjfeed.views.update_comment' %}" method="POST" class="autohide-body" id="update_comment_{{obj.id}}-body">
+  <span class="autohide-button" id="update_comment_{{obj.id}}-button">Update</span>
+  <form method="POST" class="autohide-body" id="update_comment_{{obj.id}}-body">
     {% csrf_token %}
-    <input type="hidden" name="comment" value="{{obj.id}}">
-    <textarea name="content" cols="0" rows="0" class="textfield">{{obj.content}}</textarea>
+    <input type="hidden" name="{{obj.fieldname}}method" value="update">
+    <textarea name="{{obj.fieldname}}content" cols="0" rows="0" class="textfield">{{obj.content}}</textarea>
     <button type="submit">{% trans "Save comment" %}</button>
   </form>
 {% endblock %}

@@ -201,7 +201,29 @@ class CommentFeedEntry(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectMod
 
     @property
     def display_name(self):
-        return type(self).__name__[:-len('FeedEntry')]        
+        return type(self).__name__[:-len('FeedEntry')]
+
+    def handle__delete(self, request, style):
+        if request.user.id != self.author.id:
+            django.contrib.messages.error(request, 'Access violation')
+            return {}
+
+        self.delete()
+
+        raise fcdjangoutils.responseutils.EarlyResponseException(
+            django.shortcuts.redirect(get_return_address(request)))
+
+    def handle__update(self, request, style):
+        if request.user.id != self.author.id:
+            django.contrib.messages.error(request, 'Access violation')
+            return {}
+
+        self.content = request.POST[self.fieldname + 'content']
+        self.save()
+
+        raise fcdjangoutils.responseutils.EarlyResponseException(
+            django.shortcuts.redirect(get_return_address(request)))
+
 
 # Feed entry adaptors for objects
 
@@ -317,8 +339,9 @@ class ObjFeedEntry(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, 
         return True
 
     def handle__post(self, request, style):
-        comment_on_feed_entry = None
-
+        if not self.allowed_to_post_comment(request.user):
+            django.contrib.messages.error(request, 'Access violation')
+            return {}
         CommentFeedEntry(
             author = request.user,
             comment_on_feed_entry = self,
