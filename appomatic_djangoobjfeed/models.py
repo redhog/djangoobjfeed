@@ -169,6 +169,10 @@ class FeedEntry(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, app
             self.save()
         return ""
 
+    def render(self, *arg, **kw):
+        self.see()
+        return appomatic_renderable.models.Renderable.render(self, *arg, **kw)
+
     @property
     def display_name(self):
         return self.obj_feed_entry.subclassobject.display_name
