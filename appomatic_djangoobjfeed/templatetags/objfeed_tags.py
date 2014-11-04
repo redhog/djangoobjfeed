@@ -3,16 +3,6 @@ from fcdjangoutils.timer import Timer
 
 register = django.template.Library()
 
-@register.tag
-def objfeed(feed, only_own = False):
-    feed = feed.subclassobject
-    return feed.render(style="inline.html", context_arg={"only_own": only_own});
-
-@register.tag
-def objfeed_for_obj(obj, only_own = False):
-    feed = obj.feed.subclassobject
-    return feed.render(style="inline.html", context_arg={"only_own": only_own});
-
 class RenderNode(django.template.Node):
     def __init__(self, **kw):
         self.vars = {

@@ -14,57 +14,6 @@ def get_return_address(request):
         return request.META['HTTP_REFERER']
     return '/'
 
-def post(request, *arg, **kw):    
-    feed = appomatic_djangoobjfeed.models.ObjFeed.objects.get(id=int(request.POST['feed']))
-
-    appomatic_djangoobjfeed.models.Message(
-        feed = feed,
-        author = request.user,
-        content = request.POST['content']
-        ).save()
-
-    return django.shortcuts.redirect(get_return_address(request))
-
-def post_comment(request, *arg, **kw):    
-    comment_on_feed_entry = None
-    comment_on_comment = None
-
-    if 'comment_on_feed_entry' in request.POST:
-        comment_on_feed_entry = appomatic_djangoobjfeed.models.ObjFeedEntry.objects.get(id=int(request.POST['comment_on_feed_entry']))
-        if not comment_on_feed_entry.subclassobject.allowed_to_post_comment(request.user):
-            raise Exception('Permission denied')
-
-    if 'comment_on_comment' in request.POST:
-        raise Exception("Comments on comments disabled because permission checking isn't implemented")
-        comment_on_comment = appomatic_djangoobjfeed.models.CommentFeedEntry.objects.get(id=int(request.POST['comment_on_comment']))
-
-    appomatic_djangoobjfeed.models.CommentFeedEntry(
-        author = request.user,
-        comment_on_feed_entry = comment_on_feed_entry,
-        comment_on_comment = comment_on_comment,
-        content = request.POST['content']
-        ).save()
-
-    return django.shortcuts.redirect(get_return_address(request))
-
-def update_comment(request, *arg, **kw):    
-    comment = appomatic_djangoobjfeed.models.CommentFeedEntry.objects.get(id=int(request.POST['comment']))
-
-    assert comment.author.id == request.user.id
-
-    comment.content = request.POST['content']
-    comment.save()
-
-    return django.shortcuts.redirect(get_return_address(request))
-
-def delete_comment(request, *arg, **kw):    
-    comment = appomatic_djangoobjfeed.models.CommentFeedEntry.objects.get(id=int(request.GET['comment']))
-
-    assert comment.author.id == request.user.id
-
-    comment.delete()
-
-    return django.shortcuts.redirect(get_return_address(request))
 
 def get_feed_entry(request, feed_entry_id):
     entry = appomatic_djangoobjfeed.models.FeedEntry.objects.get(id=int(feed_entry_id))
