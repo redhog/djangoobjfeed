@@ -9,6 +9,7 @@ import fcdjangoutils.modelhelpers
 import fcdjangoutils.signalautoconnectmodel
 import appomatic_renderable.models
 import fcdjangoutils.middleware
+import fcdjangoutils.responseutils
 try:
     import pinax.apps.tribes.models as tribemodels
     import pinax.apps.blog.models as blogmodels
@@ -25,6 +26,17 @@ try:
     import friends.models as friendsmodels
 except:
     friendsmodels = None
+
+
+def get_return_address(request):
+    if '_next' in request.POST:
+        return request.POST['_next']
+    if '_next' in request.GET:
+        return request.GET['_next']
+    if 'HTTP_REFERER' in request.META:
+        return request.META['HTTP_REFERER']
+    return '/'
+
 
 # Feeds
 
@@ -67,6 +79,17 @@ class ObjFeed(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, appom
 
     def allowed_to_post(self, user=None):
         return False
+
+    def handle__post(self, request, style):
+        Message(
+            feed = self,
+            author = request.user,
+            content = request.POST[self.fieldname + 'content']
+            ).save()
+
+        raise fcdjangoutils.responseutils.EarlyResponseException(
+            django.shortcuts.redirect(get_return_address(request)))
+
 
 class NamedFeed(ObjFeed):
     owner = None
@@ -292,6 +315,19 @@ class ObjFeedEntry(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, 
         if hasattr(author, 'allowed_to_post_comment'):
             return author.allowed_to_post_comment(self, user)
         return True
+
+    def handle__post(self, request, style):
+        comment_on_feed_entry = None
+
+        CommentFeedEntry(
+            author = request.user,
+            comment_on_feed_entry = self,
+            content = request.POST[self.fieldname + 'content']
+            ).save()
+
+        raise fcdjangoutils.responseutils.EarlyResponseException(
+            django.shortcuts.redirect(get_return_address(request)))
+
 
 # Feed entry adapers
 

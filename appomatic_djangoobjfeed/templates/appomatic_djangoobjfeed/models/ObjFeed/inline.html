@@ -11,11 +11,11 @@
   <div class="feed_url" style="display: none;">{% url 'appomatic_djangoobjfeed.views.get_objfeed' objfeed_id=obj.id %}</div>
 
   {% if obj.allowed_to_post %}
-    <form action="{% url 'appomatic_djangoobjfeed.views.post' %}" method="POST" id="message_for_{{obj.id}}">
+    <form method="POST">
       <fieldset>
 	{% csrf_token %}
-	<input type="hidden" name="feed" value="{{obj.id}}">
-	<textarea name="content" cols="0" rows="0" class="textfield"></textarea>
+	<input type="hidden" name="{{obj.fieldname}}method" value="post">
+	<textarea name="{{obj.fieldname}}content" cols="0" rows="0" class="textfield"></textarea>
 	<button type="submit">{% trans "Save comment" %}</button>
       </fieldset>
     </form>
