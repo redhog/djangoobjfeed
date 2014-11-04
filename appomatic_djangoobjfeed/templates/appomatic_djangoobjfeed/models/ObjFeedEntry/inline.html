@@ -4,14 +4,14 @@
 
 {% block feed_entry %}
   <div class="feed_entry">
-    <img src="{% avatar_url feed_entry.obj_feed_entry.author 50 %}" alt="Photo of {{ feed_entry.obj_feed_entry.author }}" class="avatar" />
+    <img src="{% avatar_url obj.author 50 %}" alt="Photo of {{ obj.author }}" class="avatar" />
     <div class="entry_content">
       {% block feed_entry_header %}
         <h1><a href='{{feed_entry.get_absolute_url}}'>{{feed_entry.display_name}}</a></h1>
-        <p class="toggle_profile"><a href='{{feed_entry.obj_feed_entry.author.get_absolute_url}}'>{{feed_entry.obj_feed_entry.author}}</a></p>
+        <p class="toggle_profile"><a href='{{obj.author.get_absolute_url}}'>{{obj.author}}</a></p>
 
-        {% if feed_entry.obj_feed_entry.obj.feed and feed_entry.obj_feed_entry.obj.feed.id != feed_entry.feed.id %}
-          <p><a href="{{feed_entry.obj_feed_entry.obj.feed.owner.get_absolute_url}}">{{feed_entry.obj_feed_entry.obj.feed.owner}}</a></p>
+        {% if obj.obj.feed and obj.obj.feed.id != feed_entry.feed.id %}
+          <p><a href="{{obj.obj.feed.owner.get_absolute_url}}">{{obj.obj.feed.owner}}</a></p>
         {% endif %}
 
       {% endblock %}
@@ -25,17 +25,17 @@
         {% block feed_entry_footer %}
 	  <span class="timestamp">
 	    {% if 1 %} <!-- Would have been good to check if this is older than X days and then show date -->
-	      {% trans "Posted" %} {{ feed_entry.obj_feed_entry.posted_at|timesince }} {% trans "ago" %} 
+	      {% trans "Posted" %} {{ obj.posted_at|timesince }} {% trans "ago" %} 
 	    {% else %}
-	      {{ feed_entry.obj_feed_entry.posted_at|time }}
+	      {{ obj.posted_at|time }}
 	    {% endif %}
 	  </span>
-	  <span class="autohide-button" id="comment_for_{% if feed_entry.obj_feed_entry.is_comment %}comment_{% endif %}{{feed_entry.obj_feed_entry.id}}-button">{% trans "Comment" %}</span>
+	  <span class="autohide-button" id="comment_for_{% if obj.is_comment %}comment_{% endif %}{{obj.id}}-button">{% trans "Comment" %}</span>
 	  {% endblock %}
         <div class="clearfloat"></div>                              
       </div>
       
-      {{feed_entry.obj_feed_entry.render_as.comments__html|safe}}
+      {{obj.render_as.comments__html|safe}}
     
     </div>
     <div class="clearfloat"></div>                              
