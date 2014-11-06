@@ -7,7 +7,7 @@
     <img src="{% avatar_url obj.author 50 %}" alt="Photo of {{ obj.author }}" class="avatar" />
     <div class="entry_content">
       {% block feed_entry_header %}
-        <h1><a href='{{feed_entry.get_absolute_url}}'>{{feed_entry.display_name}}</a></h1>
+        <h1>{{feed_entry.render_as.link__html|safe}}</h1>
         <p class="toggle_profile"><a href='{{obj.author.get_absolute_url}}'>{{obj.author}}</a></p>
 
         {% if obj.obj.feed and obj.obj.feed.id != feed_entry.feed.id %}

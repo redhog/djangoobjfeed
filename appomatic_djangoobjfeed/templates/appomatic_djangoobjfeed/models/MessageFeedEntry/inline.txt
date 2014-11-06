@@ -1,5 +1,3 @@
 {% extends "appomatic_djangoobjfeed/models/ObjFeedEntry/inline.txt" %}
 
-{% block feed_entry_body %}
-  {{feed_entry.obj_feed_entry.obj.content}}
-{% endblock %}
+{% block feed_entry_body %}{{obj.obj.content}}{% endblock %}

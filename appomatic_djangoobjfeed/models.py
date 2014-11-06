@@ -45,10 +45,10 @@ class ObjFeed(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, appom
         def __init__(cls, *arg, **kw):
             fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel.__metaclass__.__init__(cls, *arg, **kw)
             if cls.__name__ != 'ObjFeed' and cls.owner is not None:
-                django.db.models.signals.post_save.connect(cls.obj_post_save, sender=cls.owner.field.rel.to)
+                django.db.models.signals.post_save.connect(cls.owner_post_save, sender=cls.owner.field.rel.to)
 
     @classmethod
-    def obj_post_save(cls, sender, instance, **kwargs):
+    def owner_post_save(cls, sender, instance, **kwargs):
         # Try around this as OneToOneField are stupid and can't handle null in a sensible way
         try:
             if instance.feed is not None:
@@ -56,6 +56,9 @@ class ObjFeed(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, appom
         except:
             pass
         cls(owner=instance).save()
+
+    def entry_added(self, entry):
+        pass
 
     @fcdjangoutils.modelhelpers.subclassproxy
     @property
@@ -90,7 +93,6 @@ class ObjFeed(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, appom
         raise fcdjangoutils.responseutils.EarlyResponseException(
             django.shortcuts.redirect(get_return_address(request)))
 
-
 class NamedFeed(ObjFeed):
     owner = None
     name = django.db.models.CharField(max_length=255)
@@ -122,6 +124,10 @@ class UserFeed(ObjFeed):
     @property
     def own_entries(self):
         return self.entries.filter(Q(obj_feed_entry__author__id = self.owner.id) | Q(obj_feed_entry__messagefeedentry__obj__feed__id = self.id))
+
+    def entry_added(self, entry):
+        print "ENTRY ADDED"
+        print entry.render(style="inline.txt")
 
 
 if tribemodels:
@@ -163,6 +169,11 @@ class FeedEntry(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, app
     obj_feed_entry = django.db.models.ForeignKey("ObjFeedEntry", related_name="feed_entry")
     seen = django.db.models.BooleanField(default=False)
 
+
+    @classmethod
+    def on_post_save(cls, sender, instance, **kwargs):
+        instance.feed.entry_added(instance)
+
     def see(self):
         if not self.seen:
             self.seen = True
@@ -186,6 +197,19 @@ class FeedEntry(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, app
 
     def __unicode__(self):
         return u"FeedEntry"
+
+    def render__title(self, request, context):
+        return self.obj_feed_entry.render(request=request, style="title")
+
+    @fcdjangoutils.modelhelpers.subclassproxy
+    def get_absolute_url(self):
+        if hasattr(self.obj_feed_entry.obj, 'get_absolute_url'):
+            return self.obj_feed_entry.obj.get_absolute_url()
+        else:
+            return 'http://' + django.contrib.sites.models.Site.objects.get_current().domain + django.core.urlresolvers.reverse(
+                'appomatic_djangoobjfeed.views.get_feed_entry',
+                kwargs={"feed_entry_id":self.id})
+
 
 class CommentFeedEntryManager(django.db.models.Manager):
     def get_query_set(self):
@@ -373,6 +397,10 @@ class MessageFeedEntry(ObjFeedEntry):
     @classmethod
     def feed_feeds_for_obj(cls, instance, author):
         yield lambda feed_entry: True, instance.feed.superclassobject
+
+    def render__title(self, request, context):
+        return self.obj.content.split("\n", 1)[0]
+
 
 if microbloggingmodels:
     class TweetFeedEntry(ObjFeedEntry):

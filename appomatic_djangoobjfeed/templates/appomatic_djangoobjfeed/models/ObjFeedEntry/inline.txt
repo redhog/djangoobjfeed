@@ -1,13 +1,9 @@
-{% block feed_entry %}
-  {% block feed_entry_header %}
-    {{feed_entry.display_name}} [{{feed_entry.get_absolute_url}}]
-    by
-    {{obj.author}} [{{obj.author.get_absolute_url}}]
-  {% endblock %}
-  {% block feed_entry_body %}
-  {% endblock %}
-  {% for sub_entry in obj.comments_in.all %}
-    --------
-    {{sub_entry.render.txt|safe}}
-  {% endfor %}
-{% endblock %}
+{% block feed_entry %}{% block feed_entry_header %}{{feed_entry.render_as.title}} [{{feed_entry.get_absolute_url}}]
+--------------------------------
+by {{obj.author}} [{{obj.author.get_absolute_url}}]
+at {{obj.posted_at}}
+
+{% endblock %}{% block feed_entry_body %}{% endblock %}{% for sub_entry in obj.comments_in.all %}
+--------
+{{sub_entry.render.txt|safe}}
+{% endfor %}{% endblock %}
