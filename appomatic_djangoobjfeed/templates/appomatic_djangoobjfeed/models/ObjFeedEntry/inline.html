@@ -11,7 +11,7 @@
         <p class="toggle_profile"><a href='{{obj.author.get_absolute_url}}'>{{obj.author}}</a></p>
 
         {% if obj.obj.feed and obj.obj.feed.id != feed_entry.feed.id %}
-          <p><a href="{{obj.obj.feed.owner.get_absolute_url}}">{{obj.obj.feed.owner}}</a></p>
+          <p>{{obj.obj.feed.owner.render_as.link__html|safe}}</p>
         {% endif %}
 
       {% endblock %}
