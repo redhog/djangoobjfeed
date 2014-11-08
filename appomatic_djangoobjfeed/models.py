@@ -1,15 +1,18 @@
 # -*- coding: utf-8 -*-
 import datetime
+import threading
 import django.db.models
 import django.contrib.auth.models
 import django.template
 import django.template.loader
+from django.conf import settings
 from django.db.models import Q
 import fcdjangoutils.modelhelpers
 import fcdjangoutils.signalautoconnectmodel
 import appomatic_renderable.models
 import fcdjangoutils.middleware
 import fcdjangoutils.responseutils
+import contextlib
 try:
     import pinax.apps.tribes.models as tribemodels
     import pinax.apps.blog.models as blogmodels
@@ -111,6 +114,7 @@ class NamedFeed(ObjFeed):
 
 class UserFeed(ObjFeed):
     owner = django.db.models.OneToOneField(django.contrib.auth.models.User, primary_key=True, related_name="feed")
+    send_email = django.db.models.BooleanField(default = True)
 
     def allowed_to_post(self, user=None):
         if user is None: user = fcdjangoutils.middleware.get_request().user
@@ -126,8 +130,24 @@ class UserFeed(ObjFeed):
         return self.entries.filter(Q(obj_feed_entry__author__id = self.owner.id) | Q(obj_feed_entry__messagefeedentry__obj__feed__id = self.id))
 
     def entry_added(self, entry):
-        print "ENTRY ADDED"
-        print entry.render(style="inline.txt")
+        obj_feed_entry = entry.obj_feed_entry.subclassobject
+        author = obj_feed_entry.get_author_from_obj(obj_feed_entry)
+        if author.id == self.owner.id:
+            entry.see()
+            print "Not sending email to author"
+            return
+
+        if not self.send_email:
+            print "User doesn't want email"
+            return
+
+        with FeedEntry.invisible():
+            django.core.mail.send_mail(
+                entry.render(style="title"),
+                entry.render(style="inline.txt"),
+                settings.DEFAULT_FROM_EMAIL,
+                [self.owner.email],
+                fail_silently=False)
 
 
 if tribemodels:
@@ -161,6 +181,8 @@ class FeedEntryManager(django.db.models.Manager):
         return django.db.models.Manager.get_query_set(self).order_by("obj_feed_entry__posted_at")
 
 class FeedEntry(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, appomatic_renderable.models.Renderable):
+    threadLocal = threading.local()
+
     class Meta:
         ordering = ('obj_feed_entry__posted_at',)
 
@@ -172,10 +194,17 @@ class FeedEntry(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, app
 
     @classmethod
     def on_post_save(cls, sender, instance, **kwargs):
-        instance.feed.entry_added(instance)
+        instance.feed.subclassobject.entry_added(instance)
+
+    @classmethod
+    @contextlib.contextmanager
+    def invisible(cls):
+        cls.threadLocal.invisible = True
+        yield
+        cls.threadLocal.invisible = False
 
     def see(self):
-        if not self.seen:
+        if not self.seen and not getattr(self.threadLocal, "invisible", False):
             self.seen = True
             self.save()
         return ""
