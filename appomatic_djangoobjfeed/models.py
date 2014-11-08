@@ -388,7 +388,8 @@ class ObjFeedEntry(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, 
     def display_name(self):
         return type(self).__name__[:-len('FeedEntry')]
 
-    def allowed_to_post_comment(self, user):
+    def allowed_to_post_comment(self, user = None):
+        if user is None: user = fcdjangoutils.middleware.get_request().user
         author = self.author
         author = getattr(author, 'subclassobject', author)
         if hasattr(author, 'allowed_to_post_comment'):

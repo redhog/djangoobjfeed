@@ -8,14 +8,16 @@
   {% with STATIC_URL|aadd:"fcdjangoutils/js/expand.js" as url %}{% widget_addjsfile url %}{% endwith %}
   {% with STATIC_URL|aadd:"fcdjangoutils/css/expand.css" as url %}{% widget_addcssfile url %}{% endwith %}
 
-  <form method="POST" class="autohide-body" id="comment_for_{% if obj.is_comment %}comment_{% endif %}{{obj.id}}-body">
-    <fieldset>
-      {% csrf_token %}
-      <input type="hidden" name="{{obj.fieldname}}method" value="post">
-      <textarea name="{{obj.fieldname}}content" cols="0" rows="0" class="textfield"></textarea>
-      <button type="submit">{% trans "Save comment" %}</button>
-    </fieldset>
-  </form>
+  {% if obj.allowed_to_post_comment %}
+    <form method="POST" class="autohide-body" id="comment_for_{% if obj.is_comment %}comment_{% endif %}{{obj.id}}-body">
+      <fieldset>
+        {% csrf_token %}
+        <input type="hidden" name="{{obj.fieldname}}method" value="post">
+        <textarea name="{{obj.fieldname}}content" cols="0" rows="0" class="textfield"></textarea>
+        <button type="submit">{% trans "Save comment" %}</button>
+      </fieldset>
+    </form>
+  {% endif %}
 
   <div class="comments">
     {% block feed_entry_comments %}

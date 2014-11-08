@@ -30,8 +30,10 @@
 	      {{ obj.posted_at|time }}
 	    {% endif %}
 	  </span>
-	  <span class="autohide-button" id="comment_for_{% if obj.is_comment %}comment_{% endif %}{{obj.id}}-button">{% trans "Comment" %}</span>
-	  {% endblock %}
+          {% if obj.allowed_to_post_comment %}
+	    <span class="autohide-button" id="comment_for_{% if obj.is_comment %}comment_{% endif %}{{obj.id}}-button">{% trans "Comment" %}</span>
+          {% endif %}
+        {% endblock %}
         <div class="clearfloat"></div>                              
       </div>
       
