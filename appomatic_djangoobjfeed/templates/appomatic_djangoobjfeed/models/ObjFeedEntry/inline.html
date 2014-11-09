@@ -8,12 +8,20 @@
     <div class="entry_content">
       {% block feed_entry_header %}
         <h1>{{feed_entry.render_as.link__html|safe}}</h1>
-        <p class="toggle_profile"><a href='{{obj.author.get_absolute_url}}'>{{obj.author}}</a></p>
+        <p>
+	  <span class="timestamp">
+	    {% trans "Posted" %} {{ obj.posted_at|timesince }} {% trans "ago" %} 
+	  </span>
+          <span class="author">
+            by <a href='{{obj.author.get_absolute_url}}'>{{obj.author}}</a>
+          </span>
+          {% if obj.obj.feed and obj.obj.feed.id != feed_entry.feed.id %}
+            <span class="location">
+              in {{obj.obj.feed.owner.render_as.link__html|safe}}
+            </span>
+          {% endif %}
 
-        {% if obj.obj.feed and obj.obj.feed.id != feed_entry.feed.id %}
-          <p>{{obj.obj.feed.owner.render_as.link__html|safe}}</p>
-        {% endif %}
-
+        </p>
       {% endblock %}
       
       <div class="feed_entry_body">
@@ -23,13 +31,6 @@
       
       <div class="entry_footer">
         {% block feed_entry_footer %}
-	  <span class="timestamp">
-	    {% if 1 %} <!-- Would have been good to check if this is older than X days and then show date -->
-	      {% trans "Posted" %} {{ obj.posted_at|timesince }} {% trans "ago" %} 
-	    {% else %}
-	      {{ obj.posted_at|time }}
-	    {% endif %}
-	  </span>
           {% if obj.allowed_to_post_comment %}
 	    <span class="autohide-button" id="comment_for_{% if obj.is_comment %}comment_{% endif %}{{obj.id}}-button">{% trans "Comment" %}</span>
           {% endif %}

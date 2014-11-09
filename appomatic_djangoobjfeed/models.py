@@ -131,7 +131,7 @@ class UserFeed(ObjFeed):
 
     def entry_added(self, entry):
         obj_feed_entry = entry.obj_feed_entry.subclassobject
-        author = obj_feed_entry.get_author_from_obj(obj_feed_entry)
+        author = obj_feed_entry.get_author_from_obj(obj_feed_entry.obj)
         if author.id == self.owner.id:
             entry.see()
             print "Not sending email to author"
@@ -429,7 +429,10 @@ class MessageFeedEntry(ObjFeedEntry):
         yield lambda feed_entry: True, instance.feed.superclassobject
 
     def render__title(self, request, context):
-        return self.obj.content.split("\n", 1)[0]
+        res = self.obj.content.split("\n", 1)[0]
+        if len(res) > 40:
+            res = res[:40] + "..."
+        return res
 
 
 if microbloggingmodels:
