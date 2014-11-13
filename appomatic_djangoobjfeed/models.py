@@ -232,12 +232,7 @@ class FeedEntry(fcdjangoutils.signalautoconnectmodel.SignalAutoConnectModel, app
 
     @fcdjangoutils.modelhelpers.subclassproxy
     def get_absolute_url(self):
-        if hasattr(self.obj_feed_entry.obj, 'get_absolute_url'):
-            return self.obj_feed_entry.obj.get_absolute_url()
-        else:
-            return 'http://' + django.contrib.sites.models.Site.objects.get_current().domain + django.core.urlresolvers.reverse(
-                'appomatic_djangoobjfeed.views.get_feed_entry',
-                kwargs={"feed_entry_id":self.id})
+        return self.obj_feed_entry.obj.get_absolute_url()
 
 
 class CommentFeedEntryManager(django.db.models.Manager):
